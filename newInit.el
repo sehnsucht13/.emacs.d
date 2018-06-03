@@ -12,12 +12,12 @@
   (setq gc-cons-threshold 800000))
 
 (defun open-init-file ()
-"Open the init file"
+"Open the init file written in org"
 (interactive)
 (find-file "~/.emacs.d/newInit.org"))
 
 (defun exit-bracket ()
-"Exit out of the brackets by going to the end of the line"
+"Exit out of the brackets and goes to the end of the line"
 (interactive)
 (evil-normal-state 1)
 (evil-append-line 1))
@@ -33,9 +33,11 @@
 (if (get-buffer "*scratch*")
     (kill-buffer "*scratch*")))
 
-;; (custom-set-variables
-;; '(eclim-eclipse-dirs '("/usr/bin/eclipse"))
-;; '(eclim-executable "/usr/lib/eclipse/plugins/org.eclim_2.7.2/bin/eclim"))
+(defun org-enable-math ()
+"Enable latex symbol and command auto complete inside of org/markdown buffers. Has to be called manually"
+  (interactive)
+  (company-mode)
+  (add-to-list 'company-backends '(company-math-symbols-unicode company-latex-commands)))
 
 ;;Increases threshold to the maximum, helps not slow down fuzzy searches
 (add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
@@ -441,33 +443,56 @@
 :ensure t)
 
 ;;Used to async linting for many languages
-       (use-package flycheck
-       :ensure t
-       :defer t)
+(use-package flycheck
+  :ensure t
+  :defer t
+  :config
+  (flycheck-pos-tip-mode))
 
-;; (use-package magit
-;;   :ensure t
-;;   :defer t
-;;   :init
-;;   (evil-leader/set-key "g" 'magit))
+(use-package flycheck-pos-tip
+  :ensure t
+  :defer t)
 
+(use-package magit
+  :ensure t
+  :defer t
+  :init
+  (evil-leader/set-key "g" 'magit))
+
+(use-package magithub
+  :ensure t
+  :after (magit))
+
+;;fuzzy matching on completions
+;;Slows it down too much but I will keep it for the future
+(use-package company-flx
+  :ensure t
+  :defer t)
+
+;;Display tooltips for functions. Only activated in emacs lisp mode
+(use-package company-quickhelp
+  :ensure t
+  :defer t)
+
+;;frontend for completions
 (use-package company
-			:ensure t
-			:config
-			(setq company-idle-delay 0)
-			(setq company-minimum-prefix-length 1)
-			(add-to-list 'company-backends 'company-web-html 'company-ghc)
+            :ensure t
+            :config
+            (setq company-idle-delay 0.1)
+            (setq company-minimum-prefix-length 1)
+            (setq company-tooltip-align-annotations t)
+            (setq company-show-numbers t)
 
-			;;Keybindings for company selections
-			(define-key company-active-map (kbd "M-n") nil)
-			(define-key company-active-map (kbd "M-p") nil)
-			(define-key company-active-map (kbd "C-j") 'company-select-next)
-			(define-key company-active-map (kbd "C-k") 'company-select-previous)
-			(define-key company-active-map [tab] 'company-complete-common-or-cycle)
-			(define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle))
+            ;;Keybindings for company selections
+            (define-key company-active-map (kbd "M-n") nil)
+            (define-key company-active-map (kbd "M-p") nil)
+            (define-key company-active-map (kbd "C-j") 'company-select-next)
+            (define-key company-active-map (kbd "C-k") 'company-select-previous)
+            (define-key company-active-map [tab] 'company-complete-common-or-cycle)
+            (define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle))
 
 
-
+;;Keeps a file containing the most used completions
 (use-package company-statistics
 :ensure t
 :after (company)
@@ -664,9 +689,9 @@
 ;;   (setq flycheck-check-syntax-automatically '(save mode-enabled))
 ;;   (eldoc-mode +1)
 ;;   (tide-hl-identifier-mode +1)
-;;   (company-mode +1)
-;;   :config
-;;   (setq company-tooltip-align-annotations t))
+;;   (company-mode +1))
+;;   
+;;
 
 (use-package nasm-mode
 :ensure t
