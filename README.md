@@ -1,2 +1,2 @@
-# .emacs.d
-Emacs config files
+# Emacs Configuration
+This repo contains all of my configuration files. Init.el is fairly empty and its only job is to pull in the newInit.org file. If anybody ends up looking at this, feel free to steal some snippets from the org file. Additionally, there are several small tweaks made to the garbage collection during load up to speed it up. The functions are called in the init.el file but their definitions will reside in the newInit.org file under the "Custom Functions" headline.
