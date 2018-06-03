@@ -358,34 +358,37 @@
 (setq org-agenda-window-frame-fractions '(0.7 . 0.8))
 
 (use-package org
-      :ensure t
-      :mode ("\\.org\\'" . org-mode)
-      :init
-      (setq org-log-done 'time)
-      (setq org-deadline-warning-days 14)
-      (setq org-agenda-start-on-weekday nil)
-      (setq org-agenda-span (quote 4))
-      (setq org-agenda-start-day "-1d")
-      (setq org-agenda-remove-tags t)
-      (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
-      :config
-      (setq org-file-apps
-	      '((auto-mode . emacs)
-	      ("\\.pdf\\'" . "zathura %s")
-	      ("\\.epub\\'" . "zathura %s")))
-      )
+  :ensure t
+  :mode ("\\.org\\'" . org-mode)
+  :init
+  (setq org-log-done 'time)
+  (setq org-deadline-warning-days 14)
+  (setq org-agenda-start-on-weekday nil)
+  (setq org-agenda-span (quote 4))
+  (setq org-agenda-start-day "-1d")
+  (setq org-agenda-remove-tags t)
+  (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
+  :config
+  (setq org-file-apps
+      '((auto-mode . emacs)
+      ("\\.pdf\\'" . "zathura %s")
+      ("\\.epub\\'" . "zathura %s")))
+  )
 
 
-      (use-package org-super-agenda
-      :ensure t
-      :config
-      (org-super-agenda-mode)
-      (setq org-super-agenda-groups
-		      '((:name "Today" :todo "TODO")
-		      (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
-		      (:name "Daily" :todo "HABIT")
-		      (:name "Maybe" :todo "MAYBE")))
-      )
+  (use-package org-super-agenda
+  :ensure t
+  :config
+  (org-super-agenda-mode)
+  (setq org-super-agenda-groups
+          '((:name "Today" :todo "TODO")
+          (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
+          (:name "Daily" :todo "HABIT")
+          (:name "Maybe" :todo "MAYBE"))))
+
+(use-package company-math
+  :ensure t
+  :defer t)
 
 (use-package treemacs
 :ensure t
@@ -411,9 +414,7 @@
 
 (use-package evil-nerd-commenter
 :ensure t
-:defer t
-:config
-)
+:defer t)
 
 (use-package pdf-tools
 :ensure t
@@ -438,6 +439,39 @@
 ;; Actualy snippets 
 (use-package yasnippet-snippets
 :ensure t)
+
+;;Used to async linting for many languages
+       (use-package flycheck
+       :ensure t
+       :defer t)
+
+;; (use-package magit
+;;   :ensure t
+;;   :defer t
+;;   :init
+;;   (evil-leader/set-key "g" 'magit))
+
+(use-package company
+			:ensure t
+			:config
+			(setq company-idle-delay 0)
+			(setq company-minimum-prefix-length 1)
+			(add-to-list 'company-backends 'company-web-html 'company-ghc)
+
+			;;Keybindings for company selections
+			(define-key company-active-map (kbd "M-n") nil)
+			(define-key company-active-map (kbd "M-p") nil)
+			(define-key company-active-map (kbd "C-j") 'company-select-next)
+			(define-key company-active-map (kbd "C-k") 'company-select-previous)
+			(define-key company-active-map [tab] 'company-complete-common-or-cycle)
+			(define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle))
+
+
+
+(use-package company-statistics
+:ensure t
+:after (company)
+:defer t)
 
 ;;Activate company mode in lisp mode
 (use-package slime-company
@@ -477,7 +511,8 @@
 (add-hook 'rust-mode-hook 'racer-mode)
 (add-hook 'racer-mode-hook 'eldoc-mode)
 (add-hook 'racer-mode-hook 'company-mode)
-(setq rust-format-on-save t))
+(setq rust-format-on-save t)
+(company-statistics-mode))
 
 (use-package cargo
 :ensure t
@@ -511,55 +546,76 @@
 ;; 			'(haskell-process-type 'cabal-repl)))
 
 ;; Due to issues with installing ghc-mod on manjaro, this will replace it
+
+(use-package haskell-snippets
+  :ensure t
+  :defer t)
+
 (use-package intero
-:ensure t
-:defer t
-:init (add-hook 'haskell-mode-hook 'intero-mode))
+  :ensure t
+  :defer t
+  :init (add-hook 'haskell-mode-hook 'intero-mode)
+  :config
+  (yas-minor-mode)
+  (flycheck-mode))
 
+;;Default emacs python mode, set up a hook for it to enable elpy
 (use-package python
-						:ensure t
-			:mode ("\\.py" . python-mode)
-			:config
-			(use-package elpy
-						:ensure t
-						:init (elpy-enable)
-						:config
-						(setq python-shell-interpreter "python"
-								python-shell-interpreter-args "-i")
-						(setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-						(add-hook 'elpy-mode-hook 'flycheck-mode)
-						))
+  :ensure t
+  :mode ("\\.py" . python-mode)
+  :config
+  (add-hook 'python-mode-hook 'elpy-mode))
 
-(use-package flycheck
-:ensure t
-:config (add-hook 'elpy-mode-hook 'flycheck-mode))
+  (use-package py-autopep8
+    :ensure t
+    :defer t)
 
-(use-package elpy
-:ensure t)
+  (use-package elpy
+    :ensure t
+    :defer t
+    :config
+    ;;Use standard python interpreter to run files
+    (setq python-shell-interpreter "python"
+          python-shell-interpreter-args "-i")
+    ;; use flycheck instead of flymake
+    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+    (add-hook 'elpy-mode-hook 'flycheck-mode)
+    (yas-minor-mode)
+    (company-statistics-mode)
+    (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
+
+(use-package basic-c-compile
+  :ensure t
+  :defer t)
+
+(use-package company-irony-c-headers
+  :ensure t
+  :defer t)
 
 (use-package company-irony
-			:ensure t
-			:config
-			(require 'company)
-			(add-to-list 'company-backends 'company-irony 'company-irony-c-headers))
+            :ensure t
+            :config
+            (company-mode)
+            (add-to-list 'company-backends '(company-irony-c-headers company-irony)))
 
 (use-package irony
-			:ensure t
-			:config
-			(add-hook 'c-mode-hook 'irony-mode)
-			(add-hook 'c++-mode-hook 'irony-mode)
-			(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+            :ensure t
+            :config
+            (add-hook 'c-mode-hook 'irony-mode)
+            (add-hook 'c++-mode-hook 'irony-mode)
+            (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
-(with-eval-after-load 'company
 (add-hook 'c-mode-hook '(lambda ()
-				(company-mode)
-				(yas-minor-mode)
-				(company-statistics-mode)))
+                (company-mode)
+                (yas-minor-mode)
+                (company-statistics-mode)
+                (flycheck-mode)))
 
 (add-hook 'c++-mode-hook '(lambda ()
-				(company-mode)
-				(yas-minor-mode)
-				(company-statistics-mode))))
+                (company-mode)
+                (yas-minor-mode)
+                (company-statistics-mode)
+                (flycheck-mode)))
 
 ;; (use-package js2-mode
 ;;   :ensure t
@@ -628,26 +684,3 @@
 (require 'company-web-html))
 (add-hook 'css-mode-hook (lambda ()
 			(company-mode)))
-
-(use-package company
-			:ensure t
-			:config
-			(setq company-idle-delay 0)
-			(setq company-minimum-prefix-length 1)
-			(add-to-list 'company-backends 'company-web-html 'company-ghc)
-
-			;;Keybindings for company selections
-			(define-key company-active-map (kbd "M-n") nil)
-			(define-key company-active-map (kbd "M-p") nil)
-			(define-key company-active-map (kbd "C-j") 'company-select-next)
-			(define-key company-active-map (kbd "C-k") 'company-select-previous)
-			(define-key company-active-map [tab] 'company-complete-common-or-cycle)
-			(define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle))
-
-
-
-(use-package company-statistics
-:ensure t
-:after (company)
-:defer t
-)
