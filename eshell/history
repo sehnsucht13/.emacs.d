@@ -1,0 +1,9 @@
+ls
+.
+cd ..
+ls
+cat /usr/lib/
+cat /usr/lib
+ls /usr/lib/
+clear
+clear

@@ -1,0 +1,7 @@
+(#s(treemacs-workspace "Default Workspace"
+					   (#s(treemacs-project "PProject" "/home/yavor/pprojects")
+						  #s(treemacs-project "ClassNotes" "/home/yavor/classNotesSummer")
+						  #s(treemacs-project "BookNotes" "/home/yavor/BookNotes")
+						  #s(treemacs-project "DotFiles" "/home/yavor/.config")
+						  #s(treemacs-project "Books" "/home/yavor/Books")
+						  #s(treemacs-project "yavor" "/home/yavor"))))
