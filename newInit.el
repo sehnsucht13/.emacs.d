@@ -37,7 +37,7 @@
 "Enable latex symbol and command auto complete inside of org/markdown buffers. Has to be called manually"
   (interactive)
   (company-mode)
-  (add-to-list 'company-backends '(company-math-symbols-unicode company-latex-commands)))
+  (add-to-list 'company-backends '(company-math-symbols-unicode)))
 
 ;;Increases threshold to the maximum, helps not slow down fuzzy searches
 (add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
@@ -463,6 +463,19 @@
   :ensure t
   :after (magit))
 
+(evil-leader/set-key "km" 'which-key-show-major-mode)
+(evil-leader/set-key "ka" 'which-key-show-full-keymap)
+
+(use-package which-key
+  :ensure t
+  :defer t
+  :config
+  (setq which-key-allow-evil-operators t)
+  (setq which-key-popup-type 'minibuffer)
+  (setq which-key-side-window-location 'bottom)
+  (setq which-key-side-window-max-height 0.35)
+  (setq which-key-idle-delay 1.5))
+
 ;;fuzzy matching on completions
 ;;Slows it down too much but I will keep it for the future
 (use-package company-flx
@@ -547,34 +560,10 @@
 :ensure t
 :defer t)
 
-;; (let ((my-cabal-path (expand-file-name "~/.cabal/bin")))
-;;   (setenv "PATH" (concat my-cabal-path path-separator (getenv "PATH")))
-;;   (add-to-list 'exec-path my-cabal-path))
-;; (custom-set-variables '(haskell-tags-on-save t))
-
-;; (use-package haskell-mode
-;;   :ensure t
-;;   :mode "\\.hs\\'"
-;;   :init
-;;   (add-hook 'haskell-mode-hook 'hindent-mode)
-;;   (autoload 'ghc-init "ghc" nil t)
-;;   (autoload 'ghc-debug "ghc" nil t)
-;;   (add-hook 'haskell-mode-hook (lambda () (ghc-init)
-;; 				 ))
-;;   :config
-;;   (add-to-list 'company-backends 'company-ghc)
-;;   (add-hook 'haskell-mode-hook 'company-mode)
-;;   (custom-set-variables '(company-ghc-show-info t)
-;; 			'(haskell-process-suggest-remove-import-lines t)
-;; 			'(haskell-process-auto-import-loaded-modules t)
-;; 			'(haskell-process-log t)
-;; 			'(haskell-process-type 'cabal-repl)))
-
 ;; Due to issues with installing ghc-mod on manjaro, this will replace it
-
 (use-package haskell-snippets
   :ensure t
-  :defer t)
+  :after (intero))
 
 (use-package intero
   :ensure t
@@ -642,60 +631,48 @@
                 (company-statistics-mode)
                 (flycheck-mode)))
 
-;; (use-package js2-mode
-;;   :ensure t
-;;   :config
-;;   (add-to-list 'auto-mode-alist '("\\.js" . js2-mode))
+(use-package js2-mode
+  :ensure t
+  :mode "\\.js\\'")
 
-;;   ;; Better imenu
-;;   (add-hook 'js2-mode-hook #'js2-imenu-extras-mode))
-
-;; (use-package js2-refactor
-;;   :ensure t
-;;   :init   (add-hook 'js2-mode-hook 'js2-refactor-mode)
-;;   :config (js2r-add-keybindings-with-prefix "C-c ."))
+(use-package tide
+  :ensure t
+  :after (js2-mode)
+  :config
+  (tide-setup))
 
 
-;; (use-package xref-js2
-;;   :ensure t
-;;   :after js2-mode
-;;   :config
+(use-package js2-refactor
+  :ensure t
+  :after (js2-mode))
 
-;;   (add-hook 'js2-mode-hook
-;;             (lambda ()
-;;               (add-hook 'xref-backend-functions #'xref-js2-xref-backend nil t))))
+(use-package skewer-mode
+  :ensure t
+  :after (js2-mode))
 
-;; (use-package company-tern
-;;   :ensure t
-;;   :after js2-mode
-;;   :config
-;;   (require 'company)
-;;   (add-to-list 'company-backends 'company-tern)
-;;   (add-hook 'js2-mode-hook (lambda ()
-;;                              (tern-mode)
-;;                              (company-mode))))
-
-(use-package rjsx-mode
-:ensure t
-:mode ("\\.js\\'" . rjsx-mode))
-
-;; (use-package tide
-;;   :ensure t
-;;   :defer t
-;;   :mode ("\\.js\\'" . tide-mode)
-;;   :config
+(add-hook 'js2-mode-hook '(lambda ()
+                            (tide-mode)
+                            (eldoc-mode +1)
+                            (flycheck-mode +1)
+                            (tide-hl-identifier-mode +1)
+                            (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+                            (company-mode +1)))
+;; (defun setup-js-mode ()
+;;   "Set up tide mode for Javascript"
+;;   (interactive)
 ;;   (tide-setup)
-;;   (flycheck-mode +1)
-;;   (setq flycheck-check-syntax-automatically '(save mode-enabled))
+;;   (js2-mode)
+;;   ;;(js2-refactor-mode)
+;;   ;;(skewer-mode)
 ;;   (eldoc-mode +1)
+;;   (flycheck-mode +1)
 ;;   (tide-hl-identifier-mode +1)
+;;   ;;(flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
 ;;   (company-mode +1))
-;;   
-;;
 
 (use-package nasm-mode
 :ensure t
-:config
+:init
 (add-hook 'asm-mode-hook 'nasm-mode))
 
 (use-package company-web
