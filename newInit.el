@@ -9,12 +9,18 @@
 
 (defun minibuffer-normal-threshold ()
   "Another small function i stole. Instead of increasing the gc threshold, it brings it to normal(that is 800 KB)"
-  (setq gc-cons-threshold 800000))
+  (setq gc-cons-threshold 1000000))
 
 (defun open-init-file ()
 "Open the init file written in org"
 (interactive)
 (find-file "~/.emacs.d/newInit.org"))
+
+(defun eval-new-init-file ()
+  "Evaluates the init.el file and then closes it. Used to update config after changing anything in org-mode based init file"
+  (interactive)
+  (eval-buffer (find-file user-init-file))
+  (kill-buffer (buffer-name)))
 
 (defun exit-bracket ()
 "Exit out of the brackets and goes to the end of the line"
@@ -27,17 +33,48 @@
 (interactive)
 (start-process "shell-process" nil "xfce4-terminal"))
 
-(defun remove-initial-scratch-buffer ()
-"Remove the scratch buffer on startup"
-(interactive)
-(if (get-buffer "*scratch*")
-    (kill-buffer "*scratch*")))
-
 (defun org-enable-math ()
 "Enable latex symbol and command auto complete inside of org/markdown buffers. Has to be called manually"
   (interactive)
   (company-mode)
   (add-to-list 'company-backends '(company-math-symbols-unicode)))
+
+(defun org-disable-math ()
+"Disables the custom latex autocompletion for org mode"
+  (interactive)
+  (company-mode))
+
+(defun org-create-heading (headingSize)
+  (interactive "p")
+  (evil-normal-state 1)
+  (evil-open-below 1)
+  (insert (make-string headingSize ?*)))
+
+(defun start-which-key-for-mode ()
+  "Start which key and display the bindings for the current mode"
+  (interactive)
+  (which-key-mode)
+  (setq which-key-idle-delay 0)
+  (which-key-show-major-mode))
+
+
+(defun start-which-key-for-full-keymap ()
+  "Start which key and display the bindings for the full keymap available"
+  (interactive)
+  (which-key-mode)
+  (setq which-key-idle-delay 0)
+  (which-key-show-full-keymap))
+
+(defun stop-which-key-for-all ()
+  "Disable which key for the current buffer. Turns off the minor mode and resets the idle delay"
+  (interactive)
+  (which-key-mode nil)
+  (setq which-key-idle-delay 3.0))
+
+(defun make-my-bookmark ()
+  "Automatically creates a bookmark with the name Current + filename"
+  (interactive)
+  (bookmark-set (buffer-name)))
 
 ;;Increases threshold to the maximum, helps not slow down fuzzy searches
 (add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
@@ -56,15 +93,8 @@
 ;;Smooth scrolling
 (setq scroll-conservatively 100)
 
-(use-package doom-themes
-			 :ensure t)
 ;;Theme settings
-(load-theme 'doom-dracula t)
-(setq doom-themes-enable-bold t
-	  doom-themes-enable-italic t)
-
-;;Hook is executed after the entire file is loaded. Removes the scratch buffer
-;; (add-hook 'after-init-hook 'remove-initial-scratch-buffer)
+(load-theme 'monokai t)
 
 ;;Disable backup files
 (setq make-backup-files nil)
@@ -104,52 +134,63 @@
 (ad-activate 'ansi-term)
 
 ;;Set the initial buffer to org todo list
-(setf initial-buffer-choice (lambda () (find-file "~/Org/Todo.org")))
+(setf initial-buffer-choice #'(lambda () (find-file "~/Org/Todo.org")))
 
-
-;; Stop at 80th column
-;; (add-hook 'prog-mode-hook '(setq fill-column 80))
-;; (add-hook 'text-mode-hook '(setq fill-column 80))
-
+(setq fill-column 80)
 ;; Visual indicators for wrap lines
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 ;;Wrap lines so they do not go past screen edge
 (global-visual-line-mode 1)
 
+;;Stop keys being echoed in minibuffer. Messes up which-key
+(setq echo-keystrokes 0)
+
+;; Clear image cache sooner to save memory on larger pdfs. Measured in seconds.
+(setq image-cache-eviction-delay 30)
+
+;; Always ensure all packages
+(setq use-package-always-ensure t)
+
 ;;Evil leader setup
 (use-package evil-leader
-      :ensure t
-      :config
-      (global-evil-leader-mode)
-      (evil-leader/set-leader "<SPC>"))
+  :ensure t
+  :config
+  (global-evil-leader-mode)
+  (evil-leader/set-leader "<SPC>"))
 ;;-------------------------- Evil leader bindings 
 ;;Window navigation
 (evil-leader/set-key "wj" 'evil-window-down
-					 "wh" 'evil-window-left
-					 "wk" 'evil-window-down
-					 "wl" 'evil-window-right
-					 ;;Quick switch to next window
-					 "ww" 'evil-window-next) 
+                     "wh" 'evil-window-left
+                     "wk" 'evil-window-down
+                     "wl" 'evil-window-right
+                     ;;Quick switch to next window
+                     "ww" 'evil-window-next) 
 
 ;;Kill window or window and buffer
 (evil-leader/set-key "wd" 'evil-window-delete
-					 "wk" 'kill-buffer-and-window) 
+                     "wk" 'kill-buffer-and-window) 
 
 ;;Create new vertical/horizontal windows
 (evil-leader/set-key "nv" 'evil-window-vsplit
-					 "nh" 'evil-window-split) ;New horizontal window
+                     "nh" 'evil-window-split) ;New horizontal window
 ;;Balance windows
 (evil-leader/set-key "wb" 'balance-windows)
 
+;; Narrow text
+(evil-leader/set-key "wn" 'narrow-to-region)
+
+;; Widen text back
+(evil-leader/set-key "wi" 'widen)
+
 ;;Cycle through available buffers
 (evil-leader/set-key "wq" 'evil-prev-buffer
-					 "we" 'evil-next-buffer)
+                     "we" 'evil-next-buffer)
 
 ;;Show all buffers available 
 (evil-leader/set-key "ws" 'helm-buffers-list)
 
-;;Create a new buffer with given input
+;;Create a new buffer with given input or switch if it exists
 (evil-leader/set-key "nb" 'switch-to-buffer)
 
 ;;Open up external shell(async process)
@@ -163,6 +204,9 @@
 
 ;;Open init file
 (evil-leader/set-key "/" 'open-init-file)
+
+;;Eval new init file
+(evil-leader/set-key "?" 'eval-new-init-file)
 
 ;;Open up a buffer describing all key bindings
 (evil-leader/set-key "K" 'describe-bindings)
@@ -178,38 +222,9 @@
 ;;Eval the entire buffer
 (evil-leader/set-key-for-mode 'emacs-lisp-mode "," 'eval-buffer)
 
-;;-----Markdown bindings
-;;Headings
-(evil-leader/set-key-for-mode 'markdown-mode "d1" 'markdown-insert-header-atx-1)
-(evil-leader/set-key-for-mode 'markdown-mode "d2" 'markdown-insert-header-atx-2)
-(evil-leader/set-key-for-mode 'markdown-mode "d3" 'markdown-insert-header-atx-3)
-(evil-leader/set-key-for-mode 'markdown-mode "d4" 'markdown-insert-header-atx-4)
-(evil-leader/set-key-for-mode 'markdown-mode "d5" 'markdown-insert-header-atx-5)
-(evil-leader/set-key-for-mode 'markdown-mode "d6" 'markdown-insert-header-atx-6)
-;;Insert/format text
-(evil-leader/set-key-for-mode 'markdown-mode "dd" #'(lambda ()
-							      (interactive)
-							      (evil-append-line 1)
-							      (markdown-insert-list-item 1)
-							 ))
-(evil-leader/set-key-for-mode 'markdown-mode "ds" 'markdown-insert-bold)
-(evil-leader/set-key-for-mode 'markdown-mode "di" 'markdown-insert-italic)
-;;Table inserts
-(evil-leader/set-key-for-mode 'markdown-mode "dr" 'markdown-table-insert-row)
-(evil-leader/set-key-for-mode 'markdown-mode "dc" 'markdown-table-insert-column)
-;;Horizontal line
-(evil-leader/set-key-for-mode 'markdown-mode "dh" 'markdown-insert-hr)
-;;Demote/Promote elements
-(evil-leader/set-key-for-mode 'markdown-mode "dp" 'markdown-demote)
-(evil-leader/set-key-for-mode 'markdown-mode "de" 'markdown-promote)
-;;Open up pandoc hydra
-(evil-leader/set-key-for-mode 'markdown-mode "d[" 'pandoc-main-hydra/body)
-;;Preview output in emacs browser
-(evil-leader/set-key-for-mode 'markdown-mode "do" 'markdown-live-preview-mode)
-
 ;;------Treemacs bindings
 ;;Toggle on/off
-(evil-leader/set-key "ff" 'treemacs)
+(evil-leader/set-key "ft" 'treemacs)
 ;;Different ways of opening a file
 (evil-leader/set-key-for-mode 'treemacs-mode "h" 'treemacs-visit-node-vertical-split)
 (evil-leader/set-key-for-mode 'treemacs-mode "v" 'treemacs-visit-node-horizontal-split)
@@ -217,42 +232,6 @@
 ;;Show dotfiles, this is disabled by default
 (evil-leader/set-key-for-mode 'treemacs-mode "s" 'treemacs-toggle-show-dotfiles)
 
-;;------Org Mode Bindings
-;;Agenda
-(evil-leader/set-key-for-mode 'org-mode "da" 'org-agenda)
-;;Insert todo heading(inserts new line, inserts heading then enters insert mode)
-(evil-leader/set-key-for-mode 'org-mode "dd" #'(lambda ()
-												 (interactive)
-												 (evil-append-line 1)
-												 (org-insert-todo-heading nil)
-												 (evil-append-line 1)))
-;;Insert a table
-(evil-leader/set-key-for-mode 'org-mode "dt" 'org-table-create-or-convert-from-region)
-;;Open the link at point
-(evil-leader/set-key-for-mode 'org-mode "do" 'org-open-at-point)
-;;Insert a link
-(evil-leader/set-key-for-mode 'org-mode "dl" 'org-insert-link)
-;;Schedule the item
-(evil-leader/set-key-for-mode 'org-mode "ds" #'(lambda ()
-						 (interactive)
-						 (org-schedule 1)
-						 (org-cycle )))
-;; Set a tag for a todo item
-(evil-leader/set-key-for-mode 'org-mode "dm" 'org-ctrl-c-ctrl-c)
-;; Insert a deadline for some item(usually todo's)
-(evil-leader/set-key-for-mode 'org-mode "di" 'org-deadline)
-;;Compilation menu
-(evil-leader/set-key-for-mode 'org-mode "dc" 'org-export-dispatch)
-
-(evil-leader/set-key-for-mode 'org-mode "de" 'org-edit-special)
-
-;; Insert different levels of headings
-(evil-leader/set-key-for-mode 'org-mode "d1" #'(lambda () (interactive) (insert "* ") (evil-append-line 1)))
-(evil-leader/set-key-for-mode 'org-mode "d2" #'(lambda () (interactive) (insert "** ") (evil-append-line 1)))
-(evil-leader/set-key-for-mode 'org-mode "d3" #'(lambda () (interactive) (insert "*** ") (evil-append-line 1)))
-(evil-leader/set-key-for-mode 'org-mode "d4" #'(lambda () (interactive) (insert "**** ") (evil-append-line 1)))
-(evil-leader/set-key-for-mode 'org-mode "d5" #'(lambda () (interactive) (insert "***** ") (evil-append-line 1)))
-(evil-leader/set-key-for-mode 'org-mode "d6" #'(lambda () (interactive) (insert "****** ") (evil-append-line 1)))
 
 ;;------Lisp Mode Bindings
 ;;Start Slime
@@ -264,18 +243,14 @@
 ;;Switch to output buffer
 (evil-leader/set-key-for-mode 'lisp-mode "dr" 'slime-switch-to-output-buffer)
 
-;;Evil Nerd commenter
-(evil-leader/set-key "cl" 'evilnc-comment-or-uncomment-lines)
-(evil-leader/set-key "cp" 'evilnc-comment-or-uncomment-paragraphs)
-
 ;;Shell
 (evil-leader/set-key-for-mode 'ansi-term "dd" '(term-send-raw))
 
-(evil-leader/set-key "r" 'evil-use-register)
+;;Bookmarks the current file automatically
+(evil-leader/set-key "bm" 'make-my-bookmark)
 
-;;Some emacs commands
-(evil-leader/set-key "cc" 'kill-ring-save
-					 "cv" 'yank)
+;;Show bookmarks list
+(evil-leader/set-key "bl" 'helm-bookmarks)
 
 ;;Enable evil mode everywhere. The initialization is deferred to let evil leader load first
 (use-package evil
@@ -292,9 +267,6 @@
 (define-key evil-normal-state-map (kbd "<C-up>") 'evil-window-increase-height)
 (define-key evil-normal-state-map (kbd "<C-down>") 'evil-window-decrease-height)
 
-;;For package manager
-(define-key package-menu-mode-map (kbd "j") 'next-line)
-(define-key package-menu-mode-map (kbd "k") 'previous-line)
 
 ;;Enter console in Insert state
 (evil-set-initial-state 'ansi-term 'insert)
@@ -305,12 +277,6 @@
 
 ;;Exit out of brackets while in insert mode
 (define-key evil-insert-state-map (kbd "C-a") 'exit-bracket)
-
-;;Treemacs mode mappings
-
-;; Go to parent node of current sub-tree
-(evil-define-key 'normal treemacs-mode-map (kbd "h") 'treemacs-goto-parent-node)
-
 
 ;;Colorfull cursor depending on state
 (setq evil-emacs-state-cursor '("red" box))
@@ -329,28 +295,83 @@
 (define-key minibuffer-local-must-match-map [escape] 'keyboard-escape-quit)
 (define-key minibuffer-local-isearch-map [escape] 'keyboard-quit)
 
+;;For package manager
+(define-key package-menu-mode-map (kbd "j") 'next-line)
+(define-key package-menu-mode-map (kbd "k") 'previous-line)
+(define-key package-menu-mode-map (kbd "l") 'package-menu-describe-package)
+(define-key package-menu-mode-map "i" 'package-menu-mark-install)
+(define-key package-menu-mode-map "x" 'package-menu-execute)
+(define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
+(define-key package-menu-mode-map "q" '(quit-window "KILL")										 )
+(define-key package-menu-mode-map "/" 'evil-search-forward)
+(define-key package-menu-mode-map "?" 'evil-search-backward)
+(define-key package-menu-mode-map "n" 'evil-search-next)
+(define-key package-menu-mode-map "N" 'evil-search-previous)
+
 (use-package helm
 :ensure t
 :config
+(setq helm-M-x-fuzzy-match t)
+;; Basic navigation
 (define-key helm-map (kbd "C-j") 'helm-next-line)
 (define-key helm-map (kbd "C-k") 'helm-previous-line)
 (define-key helm-map (kbd "C-d") 'helm-buffer-run-kill-persistent)
+;; Find files in current dir
+(evil-leader/set-key "ff" 'helm-find-files)
+;; Man pages
+(evil-leader/set-key "fm" 'helm-man-woman)
+;; Locate some file across the system
+(evil-leader/set-key "fl" 'helm-locate)
+;; Find function defs
+(evil-leader/set-key "fa" 'helm-apropos)
+;; Find occurances of some word or regexp
+(evil-leader/set-key "fo" 'helm-occur)
+;;Resume previous session
+(evil-leader/set-key "fp" 'helm-resume)
+;; Open dired
+(evil-leader/set-key "fd" 'dired)
+;; Imenu or semantic, usefull for quick navigation of files
+(evil-leader/set-key "fi" 'helm-semantic-or-imenu)
+;; View register contents
+(evil-leader/set-key "fr" 'helm-register)
+
+(helm-mode 1)
 )
 
 (use-package projectile
 :ensure t
-:defer t)
+:config
+(setq projectile-enable-caching t)
+(evil-leader/set-key "pa" 'projectile-discover-projects-in-directory)
+(evil-leader/set-key "pc" 'projectile-commander))
 
 (use-package helm-projectile
 :ensure t
 :after projectile
 :config
+;; Master menu
+(evil-leader/set-key "pp" 'helm-projectile)
+;; Switches to projects
 (evil-leader/set-key "ps" 'helm-projectile-switch-project)
+;; Finds a file within project
 (evil-leader/set-key "pf" 'helm-projectile-find-file)
-(evil-leader/set-key "pd" 'helm-projectile-find-dir))
+;; Finds a directory and opens it within project
+(evil-leader/set-key "pd" 'helm-projectile-find-dir)
+;; Switches to a project buffer
+(evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer)
+(helm-projectile-on))
+
+;;Open the agenda from anywhere
+(evil-leader/set-key "oa" 'org-agenda)
+
+;;Org capture
+(evil-leader/set-key "oc" 'org-capture)
 
 ;;Org mode todo states
 (setq org-todo-keywords '((sequence "TODO" "MAYBE" "WAITING" "|" "DONE" "CANCELLED")))
+
+;;Org capture file
+(setq org-default-notes-file "~/Org/OrgCaptures.org")
 
 ;;Make it so agenda opens horizontally
 (setq split-height-threshold 40)
@@ -358,7 +379,9 @@
 (setq org-agenda-window-setup 'reorganize-frame)
 (setq org-agenda-restore-windows-after-quit t)
 (setq org-agenda-window-frame-fractions '(0.7 . 0.8))
+(setq org-agenda-skip-deadline-if-done t)
 
+;;Bindings for org mode. Only valid in org buffers
 (use-package org
   :ensure t
   :mode ("\\.org\\'" . org-mode)
@@ -370,14 +393,62 @@
   (setq org-agenda-start-day "-1d")
   (setq org-agenda-remove-tags t)
   (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
+  ;; start indented
+  (setq org-startup-indented t)
+  ;; Hide leading stars. Looks better
+  (setq org-hide-leading-stars t)
   :config
   (setq org-file-apps
       '((auto-mode . emacs)
       ("\\.pdf\\'" . "zathura %s")
       ("\\.epub\\'" . "zathura %s")))
-  )
+
+      ;;------Org Mode Bindings
+  ;;Insert todo heading(inserts new line, inserts heading then enters insert mode)
+  (evil-leader/set-key-for-mode 'org-mode "dd" #'(lambda ()
+                                                   (interactive)
+                                                   (evil-append-line 1)
+                                                   (org-insert-todo-heading nil)
+                                                   (evil-append-line 1)))
+  ;;Insert a table
+  (evil-leader/set-key-for-mode 'org-mode "dt" 'org-table-create-or-convert-from-region)
+  ;;Open the link at point
+  (evil-leader/set-key-for-mode 'org-mode "do" 'org-open-at-point)
+  ;;Insert a link
+  (evil-leader/set-key-for-mode 'org-mode "dl" 'org-insert-link)
+  ;;Schedule the item
+  (evil-leader/set-key-for-mode 'org-mode "ds" #'(lambda ()
+                                                   (interactive)
+                                                   (org-schedule 1)
+                                                   (org-cycle)
+                                                   (kill-buffer "*Calendar*")))
+  ;; Set a tag for a todo item
+  (evil-leader/set-key-for-mode 'org-mode "dm" 'org-ctrl-c-ctrl-c)
+
+  ;; Insert a deadline for some item(usually todo's)
+  (evil-leader/set-key-for-mode 'org-mode "di" #'(lambda ()
+                                                  (interactive)
+                                                  (org-deadline 1)
+                                                  (org-cycle)
+                                                  (kill-buffer "*Calendar*")))
+  ;;Compilation menu
+  (evil-leader/set-key-for-mode 'org-mode "dc" 'org-export-dispatch)
+
+  ;; Edit code blocks with syntax highlighting and so on
+  (evil-leader/set-key-for-mode 'org-mode "de" 'org-edit-special)
+
+  ;; Navigation
+  (define-key org-mode-map (kbd "M-j") 'org-forward-heading-same-level)
+  (define-key org-mode-map (kbd "M-k") 'org-backward-heading-same-level)
+  (define-key org-mode-map (kbd "M-h") 'outline-up-heading)
+  (define-key org-mode-map (kbd "M-l") #'(lambda ()
+                                          (interactive)
+                                          (outline-up-heading)
+                                          (org-forward-heading-same-level +1))))
 
 
+
+;;Helps organize the agenda view
   (use-package org-super-agenda
   :ensure t
   :config
@@ -388,9 +459,34 @@
           (:name "Daily" :todo "HABIT")
           (:name "Maybe" :todo "MAYBE"))))
 
+;;Provides mathematical symbols in org mode
 (use-package company-math
   :ensure t
   :defer t)
+
+;; Journaling mode
+(use-package org-journal
+  :ensure t
+  :config
+  (setq org-journal-dir "~/Org/Others/Journal")
+  (setq org-journal-find-file 'find-file)
+  (evil-leader/set-key "]t" 'org-journal-new-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "]j" 'org-journal-next-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "]k" 'org-journal-previous-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "]s" 'org-journal-search)
+  ;; Override default behaviour. Was a pain in the ass to execute a buffer local hook.
+  (evil-leader/set-key-for-mode 'org-journal-mode "wk" (lambda ()
+                                                         (interactive)
+                                                         (save-buffer)
+                                                         (kill-buffer-and-window))))
+
+  ;; Bindings for the agenda view itself(not valid in org mode!!!)
+  (define-key org-agenda-mode-map "q" 'org-agenda-exit)
+  (define-key org-agenda-mode-map "j" 'org-agenda-next-item)
+  (define-key org-agenda-mode-map "k" 'org-agenda-previous-item)
+  (define-key org-agenda-mode-map "d" 'org-agenda-todo)
+  (define-key org-agenda-mode-map (kbd "C-j") 'org-agenda-next-line)
+  (define-key org-agenda-mode-map (kbd "C-k") 'org-agenda-previous-line)
 
 (use-package treemacs
 :ensure t
@@ -403,25 +499,60 @@
 :after (treemacs))
 
 (use-package markdown-mode
-:ensure t
-:defer t
-:init (setq markdown-command "pandoc")
-:config (setq markdown-enable-math t)
+  :ensure t
+  :defer t
+  :init (setq markdown-command "pandoc")
+  :config (setq markdown-enable-math t)
 (setq markdown-live-preview-mode t)
-:commands (markdown-mode gfm-mode)
-:mode ("\\.md\\'" . markdown-mode)
-		("README\\.md\\'" . gfm-mode)
-		("\\.markdown\\'" . markdown-mode)
-	:hook (add-hook 'markdown-mode-hook 'pandoc-mode))
+;;-----Markdown bindings
+;;Headings
+(evil-leader/set-key-for-mode 'markdown-mode "d1" 'markdown-insert-header-atx-1)
+(evil-leader/set-key-for-mode 'markdown-mode "d2" 'markdown-insert-header-atx-2)
+(evil-leader/set-key-for-mode 'markdown-mode "d3" 'markdown-insert-header-atx-3)
+(evil-leader/set-key-for-mode 'markdown-mode "d4" 'markdown-insert-header-atx-4)
+(evil-leader/set-key-for-mode 'markdown-mode "d5" 'markdown-insert-header-atx-5)
+(evil-leader/set-key-for-mode 'markdown-mode "d6" 'markdown-insert-header-atx-6)
+;;Insert/format text
+(evil-leader/set-key-for-mode 'markdown-mode "dd" #'(lambda ()
+                              (interactive)
+                              (evil-append-line 1)
+                              (markdown-insert-list-item 1)
+                             ))
+(evil-leader/set-key-for-mode 'markdown-mode "ds" 'markdown-insert-bold)
+(evil-leader/set-key-for-mode 'markdown-mode "di" 'markdown-insert-italic)
+;;Table inserts
+(evil-leader/set-key-for-mode 'markdown-mode "dr" 'markdown-table-insert-row)
+(evil-leader/set-key-for-mode 'markdown-mode "dc" 'markdown-table-insert-column)
+;;Horizontal line
+(evil-leader/set-key-for-mode 'markdown-mode "dh" 'markdown-insert-hr)
+;;Demote/Promote elements
+(evil-leader/set-key-for-mode 'markdown-mode "dp" 'markdown-demote)
+(evil-leader/set-key-for-mode 'markdown-mode "de" 'markdown-promote)
+;;Open up pandoc hydra
+(evil-leader/set-key-for-mode 'markdown-mode "d[" 'pandoc-main-hydra/body)
+;;Preview output in emacs browser
+(evil-leader/set-key-for-mode 'markdown-mode "do" 'markdown-live-preview-mode)
+
+  :commands (markdown-mode gfm-mode)
+  :mode ("\\.md\\'" . markdown-mode)
+  ("README\\.md\\'" . gfm-mode)
+  ("\\.markdown\\'" . markdown-mode)
+  :hook (add-hook 'markdown-mode-hook 'pandoc-mode))
 
 (use-package evil-nerd-commenter
-:ensure t
-:defer t)
+  :ensure t
+  :config
+  ;;Evil Nerd commenter
+  (evil-leader/set-key "cl" 'evilnc-comment-or-uncomment-lines)
+  (evil-leader/set-key "cp" 'evilnc-comment-or-uncomment-paragraphs))
 
 (use-package pdf-tools
 :ensure t
 :mode ("\\.pdf\\'" . pdf-tools-install)
-:defer t)
+:defer t
+:config
+(setq-default pdf-view-display-size 'fit-page)
+(evil-set-initial-state 'pdf-view-mode 'normal))
 
 (use-package pomodoro
 :ensure t
@@ -447,52 +578,107 @@
   :ensure t
   :defer t
   :config
-  (flycheck-pos-tip-mode))
+  (evil-leader/set-key "ej" 'flycheck-next-error)
+  (evil-leader/set-key "ek" 'flycheck-previous-error))
 
 (use-package flycheck-pos-tip
   :ensure t
-  :defer t)
+  :after flycheck)
 
 (use-package magit
   :ensure t
-  :defer t
   :init
-  (evil-leader/set-key "g" 'magit))
+  (evil-leader/set-key "vs" 'magit-status)
+  (evil-leader/set-key "vp" 'magit-push)
+  (evil-leader/set-key "vc" 'magit-commit)
+  (evil-leader/set-key "vd" 'magit-pull))
 
 (use-package magithub
   :ensure t
   :after (magit))
 
-(evil-leader/set-key "km" 'which-key-show-major-mode)
-(evil-leader/set-key "ka" 'which-key-show-full-keymap)
+(evil-leader/set-key "km" 'start-which-key-for-mode)
+(evil-leader/set-key "ka" 'start-which-key-for-full-keymap)
+(evil-leader/set-key "kk" 'stop-which-key-for-all)
 
 (use-package which-key
   :ensure t
   :defer t
   :config
   (setq which-key-allow-evil-operators t)
-  (setq which-key-popup-type 'minibuffer)
-  (setq which-key-side-window-location 'bottom)
-  (setq which-key-side-window-max-height 0.35)
-  (setq which-key-idle-delay 1.5))
+  (which-key-setup-minibuffer))
 
-;;fuzzy matching on completions
-;;Slows it down too much but I will keep it for the future
-(use-package company-flx
+;;Bindings for the emacs calendar. Used often with deadlines and overall agenda related tasks
+(define-key calendar-mode-map "j" 'calendar-forward-day)
+(define-key calendar-mode-map "k" 'calendar-backward-day)
+
+;; Control weeks
+(define-key calendar-mode-map (kbd "C-j") 'calendar-forward-week)
+(define-key calendar-mode-map (kbd "C-k") 'calendar-backward-week)
+
+;; Control months
+(define-key calendar-mode-map (kbd "C-h") 'calendar-backward-month)
+(define-key calendar-mode-map (kbd "C-l") 'calendar-forward-month)
+
+(defun my-dired-mode-setup ()
+  "Runs as a hook when dired mode starts. Disables some features I find annoying"
+  (dired-hide-details-mode t)
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
+  (define-key dired-mode-map (kbd "^") (lambda ()
+                                         (interactive)
+                                         (find-alternate-file ".."))))
+
+;; Enables normal copy and paste
+(use-package dired-ranger
   :ensure t
-  :defer t)
+  :bind (:map dired-mode-map
+              ("C" . dired-ranger-copy)
+              ("X" . dired-ranger-move)
+              ("P" . dired-ranger-paste)))
+
+;; Provides various customizable filters. Simply avoids regexps
+(use-package dired-filter
+  :ensure t)
+
+;; Run the hook
+(add-hook 'dired-mode-hook 'my-dired-mode-setup)
+
+;; Add an auto filter for dotfiles
+(add-hook 'dired-mode-hook 'dired-filter-by-dot-files)
+
+(setq dired-recursive-copies (quote always))
+
+(setq dired-recursive-deletes (quote top))
+
+(evil-define-key 'normal dired-mode-map "Q" (lambda ()
+                                              (interactive)
+                                              (quit-window t)))
+(evil-leader/set-key "fh" (lambda ()
+                            (interactive)
+                            (dired "~/")))
+
+;; Simple shortcuts for my bookmarks
+(evil-global-set-key 'normal ",q" (lambda ()
+                                    (interactive)
+                                    (bookmark-jump "Books")))
+(evil-global-set-key 'normal ",w" (lambda ()
+                                    (interactive)
+                                    (bookmark-jump "Downloads")))
+(evil-global-set-key 'normal ",s" (lambda ()
+                                    (interactive)
+                                    (bookmark-jump "School")))
 
 ;;Display tooltips for functions. Only activated in emacs lisp mode
 (use-package company-quickhelp
   :ensure t
   :defer t)
 
-;;frontend for completions
+;; ;;frontend for completions
 (use-package company
             :ensure t
             :config
-            (setq company-idle-delay 0.1)
-            (setq company-minimum-prefix-length 1)
+            (setq company-idle-delay 0)
+            (setq company-minimum-prefix-length 2)
             (setq company-tooltip-align-annotations t)
             (setq company-show-numbers t)
 
@@ -532,7 +718,7 @@
 (add-hook 'emacs-lisp-mode-hook 'company-mode)
 
 ;;Hook for common lisp. Starts up the REPL
-(add-hook 'lisp-mode-hook '(lambda ()
+(add-hook 'lisp-mode-hook #'(lambda ()
 				(company-mode)
 				(slime)
 				(require 'common-lisp-snippets)
@@ -580,23 +766,23 @@
   :config
   (add-hook 'python-mode-hook 'elpy-mode))
 
-  (use-package py-autopep8
-    :ensure t
-    :defer t)
+(use-package py-autopep8
+  :ensure t
+  :defer t)
 
-  (use-package elpy
-    :ensure t
-    :defer t
-    :config
-    ;;Use standard python interpreter to run files
-    (setq python-shell-interpreter "python"
-          python-shell-interpreter-args "-i")
-    ;; use flycheck instead of flymake
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-    (add-hook 'elpy-mode-hook 'flycheck-mode)
-    (yas-minor-mode)
-    (company-statistics-mode)
-    (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
+(use-package elpy
+  :ensure t
+  :defer t
+  :config
+  ;;Use standard python interpreter to run files
+  (setq python-shell-interpreter "python"
+        python-shell-interpreter-args "-i")
+  ;; use flycheck instead of flymake
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  (add-hook 'elpy-mode-hook 'flycheck-mode)
+  (yas-minor-mode)
+  (company-statistics-mode)
+  (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
 
 (use-package basic-c-compile
   :ensure t
@@ -604,13 +790,15 @@
 
 (use-package company-irony-c-headers
   :ensure t
-  :defer t)
+  :config
+  (add-to-list 'company-backends 'company-irony-c-headers))
 
 (use-package company-irony
             :ensure t
             :config
-            (company-mode)
-            (add-to-list 'company-backends '(company-irony-c-headers company-irony)))
+            (require 'company)
+            (setq company-irony-ignore-case 'smart)
+            (add-to-list 'company-backends 'company-irony))
 
 (use-package irony
             :ensure t
@@ -619,13 +807,13 @@
             (add-hook 'c++-mode-hook 'irony-mode)
             (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
-(add-hook 'c-mode-hook '(lambda ()
+(add-hook 'c-mode-hook (lambda ()
                 (company-mode)
                 (yas-minor-mode)
                 (company-statistics-mode)
                 (flycheck-mode)))
 
-(add-hook 'c++-mode-hook '(lambda ()
+(add-hook 'c++-mode-hook (lambda ()
                 (company-mode)
                 (yas-minor-mode)
                 (company-statistics-mode)
@@ -637,9 +825,7 @@
 
 (use-package tide
   :ensure t
-  :after (js2-mode)
-  :config
-  (tide-setup))
+  :after (js2-mode))
 
 
 (use-package js2-refactor
@@ -650,25 +836,14 @@
   :ensure t
   :after (js2-mode))
 
-(add-hook 'js2-mode-hook '(lambda ()
+(add-hook 'js2-mode-hook #'(lambda ()
+                            (tide-setup)
                             (tide-mode)
                             (eldoc-mode +1)
                             (flycheck-mode +1)
                             (tide-hl-identifier-mode +1)
                             (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
                             (company-mode +1)))
-;; (defun setup-js-mode ()
-;;   "Set up tide mode for Javascript"
-;;   (interactive)
-;;   (tide-setup)
-;;   (js2-mode)
-;;   ;;(js2-refactor-mode)
-;;   ;;(skewer-mode)
-;;   (eldoc-mode +1)
-;;   (flycheck-mode +1)
-;;   (tide-hl-identifier-mode +1)
-;;   ;;(flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-;;   (company-mode +1))
 
 (use-package nasm-mode
 :ensure t
@@ -684,5 +859,5 @@
 :ensure t
 :config
 (require 'company-web-html))
-(add-hook 'css-mode-hook (lambda ()
+(add-hook 'css-mode-hook #'(lambda ()
 			(company-mode)))

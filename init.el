@@ -2,10 +2,6 @@
 (let ((gc-cons-threshold most-positive-fixnum)
 	  (file-name-handler-alist nil))
 
-;;stops checking for file types when loading init
-;; (let ((file-name-handler-alist nil))
- ;; Kick up garbage collection threshold
-;; (setq gc-cons-threshold 100000000)
 
 (require 'package)
 (setq package-enable-at-startup nil)
@@ -13,9 +9,10 @@
 (package-initialize)
 
 ;;Org file which contains all of the setup
-(org-babel-load-file (expand-file-name "~/.emacs.d/newInit.org"))
+(org-babel-load-file (expand-file-name "~/.emacs.d/newInit.org")))
 
 ;;-------------------------------------------------- Don't touch below --------------------------------------------------------
+;; DO NOT wrap this in the parentheses for the garbage collection threshold. Any time a new package is installed, it will not be recognized and emacs will create another identical one.
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -29,30 +26,17 @@
  '(org-super-agenda-mode t)
  '(package-selected-packages
    (quote
-	(helm-projectile projectile atom-one-dark-theme indium company-emacs-eclim eclim meghanada org-super-agenda slime-company yasnippet-snippets web-mode use-package treemacs-evil tide slime rjsx-mode racer pomodoro pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- ))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(eclim-eclipse-dirs (quote ("/usr/lib/eclipse")))
- '(eclim-executable "/usr/lib/eclipse/eclim")
- '(org-agenda-files
-   (quote
-	("~/Org/Todo.org" "~/Org/Habits.org" "~/Org/School.org")))
- '(org-super-agenda-mode t)
- '(package-selected-packages
-   (quote
-	(magit helm-projectile projectile atom-one-dark-theme indium company-emacs-eclim eclim meghanada org-super-agenda slime-company yasnippet-snippets web-mode use-package treemacs-evil tide slime rjsx-mode racer pomodoro pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo))))
+	(dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil tide slime rjsx-mode racer pomodoro pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
+ '(pdf-cache-image-limit 15)
+ '(pdf-cache-prefetch-delay 0.7)
+ '(pdf-occur-global-minor-mode t)
+ '(pdf-view-display-size (quote fit-page))
+ '(pdf-view-use-imagemagick t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
