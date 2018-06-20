@@ -1,0 +1,27 @@
+;;;; Emacs Bookmark Format Version 1 ;;;; -*- coding: utf-8-emacs -*- 
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("pNotes"
+ (filename . "/home/yavor/Notes/Thoughts"))
+("School"
+ (filename . "~/classNotesSummer/")
+ (front-context-string . "Calc3\n  drwxr-xr")
+ (rear-context-string . "96 Jun  5 16:05 ")
+ (position . 225))
+("Downloads"
+ (filename . "~/Downloads/")
+ (front-context-string . "glad(1).zip\n  -r")
+ (rear-context-string . "05 Jun 12 01:09 ")
+ (position . 939))
+("Books"
+ (filename . "~/Books/")
+ (front-context-string . "assignment1.pdf\n")
+ (rear-context-string . "07 May 15 11:03 ")
+ (position . 218))
+("pProjects"
+ (filename . "~/pprojects/")
+ (front-context-string . "asm\n  drwxr-xr-x")
+ (rear-context-string . "96 May 17 10:46 ")
+ (position . 400))
+)
