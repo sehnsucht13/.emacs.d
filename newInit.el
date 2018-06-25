@@ -33,17 +33,6 @@
 (interactive)
 (start-process "shell-process" nil "xfce4-terminal"))
 
-(defun org-enable-math ()
-"Enable latex symbol and command auto complete inside of org/markdown buffers. Has to be called manually"
-  (interactive)
-  (company-mode)
-  (add-to-list 'company-backends '(company-math-symbols-unicode)))
-
-(defun org-disable-math ()
-"Disables the custom latex autocompletion for org mode"
-  (interactive)
-  (company-mode))
-
 (defun org-create-heading (headingSize)
   (interactive "p")
   (evil-normal-state 1)
@@ -75,6 +64,116 @@
   "Automatically creates a bookmark with the name Current + filename"
   (interactive)
   (bookmark-set (buffer-name)))
+
+(defun open-wiki-index ()
+  "Opens the wiki index"
+  (interactive)
+  (find-file "~/Wiki/index.org"))
+
+(defun wiki-emacs-lisp-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC emacs-lisp")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+(defun wiki-python-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC python")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+(defun wiki-latex-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC latex")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+(defun wiki-java-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC java")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+
+(defun wiki-javascript-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC js")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+(defun wiki-sh-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC sh")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+
+(defun wiki-haskell-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC haskell")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+
+(defun wiki-C-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC C")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+
+(defun wiki-C++-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC C++")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+
+(defun wiki-rust-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC rust")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+(defun wiki-lisp-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC lisp")
+  (org-return)
+  (org-return)
+  (insert "#+END_SRC")
+  (previous-line 1))
+
+(evil-leader/set-key-for-mode 'org-mode "ih" 'wiki-haskell-block)
+(evil-leader/set-key-for-mode 'org-mode "ija" 'wiki-java-block)
+(evil-leader/set-key-for-mode 'org-mode "ijs" 'wiki-javascript-block)
+(evil-leader/set-key-for-mode 'org-mode "ip" 'wiki-python-block)
+(evil-leader/set-key-for-mode 'org-mode "ic" 'wiki-C-block)
+(evil-leader/set-key-for-mode 'org-mode "iv" 'wiki-C++-block)
+(evil-leader/set-key-for-mode 'org-mode "ir" 'wiki-rust-block)
+(evil-leader/set-key-for-mode 'org-mode "ie" 'wiki-emacs-lisp-block)
+(evil-leader/set-key-for-mode 'org-mode "ila" 'wiki-latex-block)
+(evil-leader/set-key-for-mode 'org-mode "ilp" 'wiki-lisp-block)
+(evil-leader/set-key-for-mode 'org-mode "ow" 'open-wiki-index)
 
 ;;Increases threshold to the maximum, helps not slow down fuzzy searches
 (add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
@@ -316,6 +415,7 @@
 (define-key helm-map (kbd "C-j") 'helm-next-line)
 (define-key helm-map (kbd "C-k") 'helm-previous-line)
 (define-key helm-map (kbd "C-d") 'helm-buffer-run-kill-persistent)
+(define-key helm-map (kbd "C-h") 'helm-execute-persistent-action)
 ;; Find files in current dir
 (evil-leader/set-key "ff" 'helm-find-files)
 ;; Man pages
@@ -361,6 +461,10 @@
 (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer)
 (helm-projectile-on))
 
+(defun yav-go-up-org-heading ()
+  (outline-up-heading)
+  (org-cycle))
+
 ;;Open the agenda from anywhere
 (evil-leader/set-key "oa" 'org-agenda)
 
@@ -368,7 +472,7 @@
 (evil-leader/set-key "oc" 'org-capture)
 
 ;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO" "MAYBE" "WAITING" "|" "DONE" "CANCELLED")))
+(setq org-todo-keywords '((sequence "TODO" "MAYBE" "WAITING" "NEXT" "RESEARCH" "|" "DONE" "CANCELLED")))
 
 ;;Org capture file
 (setq org-default-notes-file "~/Org/OrgCaptures.org")
@@ -397,18 +501,49 @@
   (setq org-startup-indented t)
   ;; Hide leading stars. Looks better
   (setq org-hide-leading-stars t)
-  :config
-  (setq org-file-apps
-      '((auto-mode . emacs)
-      ("\\.pdf\\'" . "zathura %s")
-      ("\\.epub\\'" . "zathura %s")))
 
-      ;;------Org Mode Bindings
+  (setq org-link-frame-setup '((file . find-file)))
+
+  :config
+  ;; Capture templates
+  (setq org-capture-templates
+        '(("t" "Todo entry" entry (file+headline "~/Org/Todo.org" "Today")
+           "* TODO %?" :kill-buffer t)
+          ("m" "Maybe entry" entry (file+headline "~/Org/Todo.org" "Today")
+           "* MAYBE %?" :kill-buffer t)
+          ("s" "School question" entry (file+headline "~/Org/School.org" "Questions")
+           "* QUESTION %?" :kill-buffer t :prepend t)
+          ("q" "Research/Read About" entry (file+headline "~/Org/Todo.org" "To Find Out")
+           "* RESEARCH %?" :kill-buffer t :prepend t)))
+
+  (setq org-file-apps
+        '((auto-mode . emacs)
+          ("\\.pdf\\'" . "zathura %s")
+          ("\\.epub\\'" . "zathura %s")
+          ("\\.djvu\\'" . "zathura %s")))
+  ;; Add syntax highlight to blocks
+  (setq org-src-fontify-natively t)
+  ;; Dont ask to run code
+  (setq org-confirm-babel-evaluate nil)
+  ;; What languages to evel
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(
+     (latex . t)
+     (python . t)
+     (C . t)
+     (shell . t)
+     (js . t)
+     (haskell . t)
+     (emacs-lisp . t)
+     (lisp . t)))
+
+  ;;------Org Mode Bindings
   ;;Insert todo heading(inserts new line, inserts heading then enters insert mode)
   (evil-leader/set-key-for-mode 'org-mode "dd" #'(lambda ()
                                                    (interactive)
                                                    (evil-append-line 1)
-                                                   (org-insert-todo-heading nil)
+                                                   (org-insert-todo-heading t t)
                                                    (evil-append-line 1)))
   ;;Insert a table
   (evil-leader/set-key-for-mode 'org-mode "dt" 'org-table-create-or-convert-from-region)
@@ -422,8 +557,8 @@
                                                    (org-schedule 1)
                                                    (org-cycle)
                                                    (kill-buffer "*Calendar*")))
-  ;; Set a tag for a todo item
-  (evil-leader/set-key-for-mode 'org-mode "dm" 'org-ctrl-c-ctrl-c)
+  ;; Way too much to explain. Very important
+  (evil-leader/set-key-for-mode 'org-mode "dr" 'org-ctrl-c-ctrl-c)
 
   ;; Insert a deadline for some item(usually todo's)
   (evil-leader/set-key-for-mode 'org-mode "di" #'(lambda ()
@@ -440,13 +575,7 @@
   ;; Navigation
   (define-key org-mode-map (kbd "M-j") 'org-forward-heading-same-level)
   (define-key org-mode-map (kbd "M-k") 'org-backward-heading-same-level)
-  (define-key org-mode-map (kbd "M-h") 'outline-up-heading)
-  (define-key org-mode-map (kbd "M-l") #'(lambda ()
-                                          (interactive)
-                                          (outline-up-heading)
-                                          (org-forward-heading-same-level +1))))
-
-
+  (define-key org-mode-map (kbd "M-h") 'yav-go-up-org-heading))
 
 ;;Helps organize the agenda view
   (use-package org-super-agenda
@@ -454,10 +583,11 @@
   :config
   (org-super-agenda-mode)
   (setq org-super-agenda-groups
-          '((:name "Today" :todo "TODO")
-          (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
-          (:name "Daily" :todo "HABIT")
-          (:name "Maybe" :todo "MAYBE"))))
+          '((:name "Next" :todo "NEXT")
+            (:name "Today" :todo "TODO")
+            (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
+            (:name "Daily" :todo "HABIT")
+            (:name "Maybe" :todo "MAYBE"))))
 
 ;;Provides mathematical symbols in org mode
 (use-package company-math
@@ -468,25 +598,33 @@
 (use-package org-journal
   :ensure t
   :config
+  (setq org-journal-carryover-items nil)
   (setq org-journal-dir "~/Org/Others/Journal")
   (setq org-journal-find-file 'find-file)
   (evil-leader/set-key "]t" 'org-journal-new-entry)
-  (evil-leader/set-key-for-mode 'org-journal-mode "]j" 'org-journal-next-entry)
-  (evil-leader/set-key-for-mode 'org-journal-mode "]k" 'org-journal-previous-entry)
-  (evil-leader/set-key-for-mode 'org-journal-mode "]s" 'org-journal-search)
+  (evil-leader/set-key-for-mode 'org-journal-mode "dj" 'org-journal-next-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "dk" 'org-journal-previous-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "ds" 'org-journal-search)
   ;; Override default behaviour. Was a pain in the ass to execute a buffer local hook.
   (evil-leader/set-key-for-mode 'org-journal-mode "wk" (lambda ()
                                                          (interactive)
                                                          (save-buffer)
                                                          (kill-buffer-and-window))))
 
-  ;; Bindings for the agenda view itself(not valid in org mode!!!)
-  (define-key org-agenda-mode-map "q" 'org-agenda-exit)
-  (define-key org-agenda-mode-map "j" 'org-agenda-next-item)
-  (define-key org-agenda-mode-map "k" 'org-agenda-previous-item)
-  (define-key org-agenda-mode-map "d" 'org-agenda-todo)
-  (define-key org-agenda-mode-map (kbd "C-j") 'org-agenda-next-line)
-  (define-key org-agenda-mode-map (kbd "C-k") 'org-agenda-previous-line)
+
+   ;;Bindings for the agenda view itself(not valid in org mode!!!)
+(define-key org-agenda-mode-map "q" 'org-agenda-exit)
+(define-key org-agenda-mode-map "j" 'org-agenda-next-item)
+(define-key org-agenda-mode-map "k" 'org-agenda-previous-item)
+(define-key org-agenda-mode-map "d" 'org-agenda-todo)
+(define-key org-agenda-mode-map "h" 'org-agenda-earlier)
+(define-key org-agenda-mode-map "l" 'org-agenda-later)
+(define-key org-agenda-mode-map (kbd "C-j") 'org-agenda-next-line)
+(define-key org-agenda-mode-map (kbd "C-k") 'org-agenda-previous-line)
+(evil-leader/set-key-for-mode 'org-agenda-mode "di" 'org-agenda-clock-in)
+(evil-leader/set-key-for-mode 'org-agenda-mode "do" 'org-agenda-clock-out)
+(evil-leader/set-key-for-mode 'org-agenda-mode "dc" 'org-agenda-clock-cancel)
+(evil-leader/set-key-for-mode 'org-agenda-mode "df" 'org-agenda-filter-by-tag)
 
 (use-package treemacs
 :ensure t
@@ -546,13 +684,57 @@
   (evil-leader/set-key "cl" 'evilnc-comment-or-uncomment-lines)
   (evil-leader/set-key "cp" 'evilnc-comment-or-uncomment-paragraphs))
 
+(defun evil-collection-pdf-view-next-line-or-next-page (&optional count)
+  "'evil' wrapper include a count argument to `pdf-view-next-line-or-next-page'"
+  (interactive "P")
+  (if count
+      (dotimes (_ count nil)
+    (pdf-view-next-page 1))
+    (pdf-view-next-line-or-next-page 3)))
+
+(defun evil-collection-pdf-view-previous-line-or-previous-page (&optional count)
+  "'evil' wrapper include a count argument to `pdf-view-previous-line-or-previous-page'"
+  (interactive "P")
+  (if count
+      (dotimes (_ count nil)
+    (pdf-view-previous-page 1))
+(pdf-view-previous-line-or-previous-page 3)))
+
+(defun evil-collection-pdf-view-goto-page (&optional page)
+  "`evil' wrapper around `pdf-view-last-page'."
+  (interactive "P")
+  (if page
+      (pdf-view-goto-page page)
+    (pdf-view-last-page)
+(image-eob)))
+
 (use-package pdf-tools
 :ensure t
-:mode ("\\.pdf\\'" . pdf-tools-install)
-:defer t
 :config
-(setq-default pdf-view-display-size 'fit-page)
-(evil-set-initial-state 'pdf-view-mode 'normal))
+(pdf-tools-install)
+(setq pdf-view-continuous t)
+(setq pdf-view-display-size 'fit-width)
+(evil-set-initial-state 'pdf-view-mode 'normal)
+(evil-define-key 'normal pdf-view-mode-map (kbd "j") 'evil-collection-pdf-view-next-line-or-next-page
+  (kbd "k") 'evil-collection-pdf-view-previous-line-or-previous-page
+  (kbd "J") 'pdf-view-next-page
+  (kbd "K") 'pdf-view-previous-page
+  (kbd "i") 'pdf-outline
+  (kbd "q") 'bury-buffer
+  (kbd "Q") 'kill-current-buffer
+  (kbd "gg") 'pdf-view-first-page
+  (kbd "G") 'evil-collection-pdf-view-goto-page))
+
+  (setq doc-view-continuous t)
+  (evil-set-initial-state 'doc-view-mode 'normal)
+  (evil-define-key 'normal doc-view-mode-map (kbd "j") 'doc-view-next-line-or-next-page
+    (kbd "k") 'doc-view-previous-line-or-previous-page
+    (kbd "J") 'doc-view-next-page
+    (kbd "K") 'doc-view-previous-page
+    (kbd "q") 'bury-buffer
+    (kbd "Q") 'kill-current-buffer
+    (kbd "gg") 'doc-view-first-page
+    (kbd "G") 'doc-view-last-page)
 
 (use-package pomodoro
 :ensure t
@@ -668,6 +850,10 @@
                                     (interactive)
                                     (bookmark-jump "School")))
 
+(use-package nov
+  :ensure t
+  :mode ("\\.epub\\'" . nov-mode))
+
 ;;Display tooltips for functions. Only activated in emacs lisp mode
 (use-package company-quickhelp
   :ensure t
@@ -746,7 +932,7 @@
 :ensure t
 :defer t)
 
-;; Due to issues with installing ghc-mod on manjaro, this will replace it
+;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
 (use-package haskell-snippets
   :ensure t
   :after (intero))
@@ -861,3 +1047,8 @@
 (require 'company-web-html))
 (add-hook 'css-mode-hook #'(lambda ()
 			(company-mode)))
+
+;; Set up latex
+(use-package tex
+  :defer t
+  :ensure auctex)

@@ -1,0 +1,29 @@
+;;; -*- coding: utf-8 -*-
+
+;; ----- ido-last-directory-list -----
+(
+ ("/home/yavor/Org/Others/" . "Journal/")
+ ("/home/yavor/Org/" . "Others/")
+)
+
+;; ----- ido-work-directory-list -----
+(
+ 
+)
+
+;; ----- ido-work-file-list -----
+(
+ 
+)
+
+;; ----- ido-dir-file-cache -----
+(
+ ("/home/yavor/Org/Others/Journal/" (23339 18618 486751 987000) "./" "20180618" "20180619" "Journal_April-June_2018.org" "20180620" "../")
+
+ ("/home/yavor/Org/Others/" (23336 37361 849616 662000) "WhatToFocus.org" "./" "Routine.org" "../" "Journal/" "NoteStructure.org")
+
+ ("/home/yavor/Org/" (23340 34707 394128 238000) "Others/" "Habits.org" "./" "School.org" "Todo.org" "../" ".#Todo.org" "OrgCaptures.org")
+)
+
+;; ----- ido-unc-hosts-cache -----
+t
