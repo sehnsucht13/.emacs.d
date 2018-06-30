@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: org-latex-dot
+# key: dt
+# --
+\\cdot $0

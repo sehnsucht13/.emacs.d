@@ -1,1 +1,1 @@
-("~/.emacs.d/" "~/pprojects/RSMC/" "~/pprojects/CTPriceComparison/" "~/pprojects/")
+("~/.emacs.d/" "~/Org/" "~/pprojects/RSMC/")

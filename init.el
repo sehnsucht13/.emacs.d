@@ -2,12 +2,13 @@
 (let ((gc-cons-threshold most-positive-fixnum)
 	  (file-name-handler-alist nil))
 
+  ;; Repos to pull packages from
+  (require 'package)
+  (setq package-enable-at-startup nil)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+  (package-initialize)
 
-(require 'package)
-(setq package-enable-at-startup nil)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
-(package-initialize)
 
 ;;Org file which contains all of the setup
 (org-babel-load-file (expand-file-name "~/.emacs.d/newInit.org")))
@@ -27,7 +28,7 @@
  '(org-super-agenda-mode t)
  '(package-selected-packages
    (quote
-	(nov auctex company-auctex org-plus-contrib ob-rust origami dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil tide slime rjsx-mode racer pomodoro pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
+	(ob-async esup org-noter tide nov auctex company-auctex org-plus-contrib ob-rust origami dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil slime rjsx-mode racer pomodoro pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
  '(pdf-cache-image-limit 15)
  '(pdf-cache-prefetch-delay 0.7)
  '(pdf-occur-global-minor-mode t)

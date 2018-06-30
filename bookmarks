@@ -9,9 +9,9 @@
  (position . 1))
 ("org-capture-last-stored"
  (filename . "~/Org/Todo.org")
- (front-context-string . "** TODO Somethin")
- (rear-context-string . "* WIWDT\n* Today\n")
- (position . 17))
+ (front-context-string . "** RESEARCH Git\n")
+ (rear-context-string . "y\n* To Find Out\n")
+ (position . 31))
 ("pNotes"
  (filename . "/home/yavor/Notes/Thoughts"))
 ("School"
@@ -30,28 +30,6 @@
  (rear-context-string . "07 May 15 11:03 ")
  (position . 218))
 ("pProjects"
- (filename . "~/pprojects/")
- (front-context-string . "asm\n  drwxr-xr-x")
- (rear-context-string . "96 May 17 10:46 ")
- (position . 400))
-("pNotes<2>"
- (filename . "/home/yavor/Notes/Thoughts"))
-("School<2>"
- (filename . "~/classNotesSummer/")
- (front-context-string . "Calc3\n  drwxr-xr")
- (rear-context-string . "96 Jun  5 16:05 ")
- (position . 225))
-("Downloads<2>"
- (filename . "~/Downloads/")
- (front-context-string . "glad(1).zip\n  -r")
- (rear-context-string . "05 Jun 12 01:09 ")
- (position . 939))
-("Books<2>"
- (filename . "~/Books/")
- (front-context-string . "assignment1.pdf\n")
- (rear-context-string . "07 May 15 11:03 ")
- (position . 218))
-("pProjects<2>"
  (filename . "~/pprojects/")
  (front-context-string . "asm\n  drwxr-xr-x")
  (rear-context-string . "96 May 17 10:46 ")

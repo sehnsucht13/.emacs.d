@@ -3,6 +3,229 @@
 (package-refresh-contents)
 (package-install 'use-package))
 
+
+;; Always ensure all packages
+(setq use-package-always-ensure t)
+
+;; Logging
+;; (setq use-package-verbose t)
+
+;; more logging
+;; (setq use-package-compute-statistics t)
+
+;;Increases threshold to the maximum, helps not slow down fuzzy searches
+(add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
+;;Returns it to normal afterwards
+(add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
+
+;;Remove some of the default tool bars and scroll bars   
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
+;; Remove splash screen and startup message
+(setq inhibit-splash-screen t
+      inhibit-startup-echo-area-message t)
+
+;;Smooth scrolling
+(setq scroll-conservatively 100)
+
+;;Theme settings
+(load-theme 'monokai t)
+
+;;Disable backup files
+(setq make-backup-files nil)
+(setq backup-inhibited t)
+(setq auto-save-default nil)
+
+;;Disable auto-compression, encryption
+(setq auto-compression-mode nil)
+(setq auto-encryption-mode nil)
+
+;;Disable tooltips
+(setq x-gtk-use-system-tooltips nil)
+(setq tooltip-mode nil)
+
+;;Column numbers(turned on only in prog modes)
+(add-hook 'prog-mode-hook 'column-number-mode)
+
+;; Relative line numbers, emacs26 >= only
+(setq-default display-line-numbers 'relative)
+
+;;Visual Parentheses matching
+(show-paren-mode 1)
+
+;;Add parentheses matching
+(electric-pair-mode 1)
+
+;;Tab width
+(setq-default tab-width 4)
+
+;;Require y or n instead of full yes or no for destructive commands
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;;Use bash for shell. Will use custom .bashrc
+(defvar my-term-shell "/bin/bash")
+(defadvice ansi-term (before force-bash)
+  (interactive (list my-term-shell)))
+(ad-activate 'ansi-term)
+
+;;Set the initial buffer to org todo list
+(setf initial-buffer-choice #'(lambda () (find-file "~/Org/Todo.org")))
+
+(setq fill-column 80)
+
+;; Visual indicators for wrap lines
+(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
+
+;;Wrap lines so they do not go past screen edge
+(global-visual-line-mode 1)
+
+;;Stop keys being echoed in minibuffer. Messes up which-key
+(setq echo-keystrokes 0)
+
+;; Clear image cache sooner to save memory on larger pdfs. Measured in seconds.
+(setq image-cache-eviction-delay 15)
+
+;;Always focus help buffers
+(setq help-window-select t)
+
+;;Set initial buffer mode to text mode.
+(setq initial-major-mode 'fundamental-mode)
+
+;;Evil leader setup
+(use-package evil-leader
+  :ensure t
+  :config
+  (global-evil-leader-mode)
+  (evil-leader/set-leader "<SPC>"))
+;;-------------------------- Evil leader bindings 
+;;Window navigation
+(evil-leader/set-key "wj" 'evil-window-down
+                     "wh" 'evil-window-left
+                     "wk" 'evil-window-down
+                     "wl" 'evil-window-right
+                     ;;Quick switch to next window
+                     "ww" 'evil-window-next) 
+
+;;Kill window or window and buffer
+(evil-leader/set-key "wd" 'evil-window-delete
+                     "wk" 'kill-buffer-and-window) 
+
+;;Create new vertical/horizontal windows
+(evil-leader/set-key "nv" 'evil-window-vsplit
+                     "nh" 'evil-window-split) ;New horizontal window
+;;Balance windows
+(evil-leader/set-key "wb" 'balance-windows)
+
+;; Narrow text
+(evil-leader/set-key "wn" 'narrow-to-region)
+
+;; Widen text back
+(evil-leader/set-key "wi" 'widen)
+
+;;Cycle through available buffers
+(evil-leader/set-key "wq" 'evil-prev-buffer
+                     "we" 'evil-next-buffer)
+
+;;Show all buffers available 
+(evil-leader/set-key "ws" 'helm-buffers-list)
+
+;;Create a new buffer with given input or switch if it exists
+(evil-leader/set-key "nb" 'switch-to-buffer)
+
+;;Open up external shell(async process)
+(evil-leader/set-key "ss" 'start-external-shell)
+;;Open up internal emacs shell
+(evil-leader/set-key "si" 'ansi-term)
+
+
+;;Create a new file from a buffer. Does not save the file, use :w for that
+(evil-leader/set-key "fw" 'write-file)
+
+;;Open init file
+(evil-leader/set-key "/" 'open-init-file)
+
+;;Eval new init file
+(evil-leader/set-key "?" 'eval-new-init-file)
+
+;;Open up a buffer describing all key bindings
+(evil-leader/set-key "K" 'describe-bindings)
+
+;;Double tap on leader(spacebar) will bring up command execution(M-x)
+(evil-leader/set-key "<SPC>" 'helm-M-x)
+
+;;Open up package manager
+(evil-leader/set-key "." 'package-list-packages)
+
+;;----------------------- Mode specific bindings for leader
+;;-----Elisp bindings
+;;Eval the entire buffer
+(evil-leader/set-key-for-mode 'emacs-lisp-mode "," 'eval-buffer)
+
+
+
+;;------Lisp Mode Bindings
+;;Start Slime
+(evil-leader/set-key-for-mode 'lisp-mode "ds" 'slime)
+;;Compile and load entire file
+(evil-leader/set-key-for-mode 'lisp-mode "dc" 'slime-compile-and-load-file)
+;;Eval one function
+(evil-leader/set-key-for-mode 'lisp-mode "df" 'slime-compile-defun)
+;;Switch to output buffer
+(evil-leader/set-key-for-mode 'lisp-mode "dr" 'slime-switch-to-output-buffer)
+
+;;Shell
+(evil-leader/set-key-for-mode 'ansi-term "dd" '(term-send-raw))
+
+;;Bookmarks the current file automatically
+(evil-leader/set-key "bm" 'make-my-bookmark)
+
+;;Show bookmarks list
+(evil-leader/set-key "bl" 'helm-bookmarks)
+
+;;Enable evil mode everywhere. The initialization is deferred to let evil leader load first
+(use-package evil
+  :ensure t
+  :config
+  (setq evil-want-C-u-scroll t)
+  (evil-mode 1)
+  :after (evil-leader))
+
+;;Resizing of windows. (C is the control key)
+(define-key evil-normal-state-map (kbd "<C-left>") 'evil-window-decrease-width)
+(define-key evil-normal-state-map (kbd "<C-right>") 'evil-window-increase-width)
+(define-key evil-normal-state-map (kbd "<C-up>") 'evil-window-increase-height)
+(define-key evil-normal-state-map (kbd "<C-down>") 'evil-window-decrease-height)
+
+
+;;Enter console in Insert state
+(evil-set-initial-state 'ansi-term 'insert)
+
+;;Visual lines
+(define-key evil-normal-state-map (kbd "C-j") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "C-k") 'evil-previous-visual-line)
+
+;;Exit out of brackets while in insert mode
+(define-key evil-insert-state-map (kbd "C-a") 'exit-bracket)
+
+;;Colorfull cursor depending on state
+(setq evil-emacs-state-cursor '("red" box))
+(setq evil-normal-state-cursor '("white" box))
+(setq evil-visual-state-cursor '("orange" box))
+(setq evil-insert-state-cursor '("white" bar))
+(setq evil-replace-state-cursor '("green" bar))
+(setq evil-operator-state-cursor '("red" hollow))
+
+;;Make escape quit anything
+(define-key evil-normal-state-map [escape] 'keyboard-quit)
+(define-key evil-visual-state-map [escape] 'keyboard-quit)
+(define-key minibuffer-local-map [escape] 'keyboard-escape-quit)
+(define-key minibuffer-local-ns-map [escape] 'keyboard-escape-quit)
+(define-key minibuffer-local-completion-map [escape] 'keyboard-escape-quit)
+(define-key minibuffer-local-must-match-map [escape] 'keyboard-escape-quit)
+(define-key minibuffer-local-isearch-map [escape] 'keyboard-quit)
+
 (defun minibuffer-increase-threshold ()
   "Small function I stole from somebodys init. Used for entering the minibuffers for autocomplete/fuzzy searching and simply increases the threshold"
   (setq gc-cons-threshold most-positive-fixnum))
@@ -175,280 +398,106 @@
 (evil-leader/set-key-for-mode 'org-mode "ilp" 'wiki-lisp-block)
 (evil-leader/set-key-for-mode 'org-mode "ow" 'open-wiki-index)
 
-;;Increases threshold to the maximum, helps not slow down fuzzy searches
-(add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
-;;Returns it to normal afterwards
-(add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
+;; Set normal state
+(evil-set-initial-state 'help-mode 'normal)
 
-;;Remove some of the default tool bars and scroll bars   
-(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+;; Rebind q to quit
+(evil-define-key 'normal help-mode-map (kbd "q") (lambda ()
+                                                (interactive)
+                                                   (quit-window t)))
+;; Skip around buttons
+(evil-define-key 'normal help-mode-map (kbd "TAB") (lambda ()
+                                                     (interactive)
+                                                     (forward-button 1 t t)))
 
-;; Remove splash screen and startup message
-(setq inhibit-splash-screen t
-      inhibit-startup-echo-area-message t)
-
-;;Smooth scrolling
-(setq scroll-conservatively 100)
-
-;;Theme settings
-(load-theme 'monokai t)
-
-;;Disable backup files
-(setq make-backup-files nil)
-(setq backup-inhibited t)
-(setq auto-save-default nil)
-
-;;Disable auto-compression, encryption
-(setq auto-compression-mode nil)
-(setq auto-encryption-mode nil)
-
-;;Disable tooltips
-(setq x-gtk-use-system-tooltips nil)
-(setq tooltip-mode nil)
-
-;;Column numbers(turned on only in prog modes)
-(add-hook 'prog-mode-hook 'column-number-mode)
-
-;; Relative line numbers, emacs26 >= only
-(setq-default display-line-numbers 'relative)
-
-;;Visual Parentheses matching
-(show-paren-mode 1)
-
-;;Add parentheses matching
-(electric-pair-mode 1)
-
-;;Tab width
-(setq-default tab-width 4)
-
-;;Require y or n instead of full yes or no for destructive commands
-(fset 'yes-or-no-p 'y-or-n-p)
-
-;;Use bash for shell. Will use custom .bashrc
-(defvar my-term-shell "/bin/bash")
-(defadvice ansi-term (before force-bash)
-  (interactive (list my-term-shell)))
-(ad-activate 'ansi-term)
-
-;;Set the initial buffer to org todo list
-(setf initial-buffer-choice #'(lambda () (find-file "~/Org/Todo.org")))
-
-(setq fill-column 80)
-;; Visual indicators for wrap lines
-(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
-
-;;Wrap lines so they do not go past screen edge
-(global-visual-line-mode 1)
-
-;;Stop keys being echoed in minibuffer. Messes up which-key
-(setq echo-keystrokes 0)
-
-;; Clear image cache sooner to save memory on larger pdfs. Measured in seconds.
-(setq image-cache-eviction-delay 30)
-
-;; Always ensure all packages
-(setq use-package-always-ensure t)
-
-;;Evil leader setup
-(use-package evil-leader
-  :ensure t
-  :config
-  (global-evil-leader-mode)
-  (evil-leader/set-leader "<SPC>"))
-;;-------------------------- Evil leader bindings 
-;;Window navigation
-(evil-leader/set-key "wj" 'evil-window-down
-                     "wh" 'evil-window-left
-                     "wk" 'evil-window-down
-                     "wl" 'evil-window-right
-                     ;;Quick switch to next window
-                     "ww" 'evil-window-next) 
-
-;;Kill window or window and buffer
-(evil-leader/set-key "wd" 'evil-window-delete
-                     "wk" 'kill-buffer-and-window) 
-
-;;Create new vertical/horizontal windows
-(evil-leader/set-key "nv" 'evil-window-vsplit
-                     "nh" 'evil-window-split) ;New horizontal window
-;;Balance windows
-(evil-leader/set-key "wb" 'balance-windows)
-
-;; Narrow text
-(evil-leader/set-key "wn" 'narrow-to-region)
-
-;; Widen text back
-(evil-leader/set-key "wi" 'widen)
-
-;;Cycle through available buffers
-(evil-leader/set-key "wq" 'evil-prev-buffer
-                     "we" 'evil-next-buffer)
-
-;;Show all buffers available 
-(evil-leader/set-key "ws" 'helm-buffers-list)
-
-;;Create a new buffer with given input or switch if it exists
-(evil-leader/set-key "nb" 'switch-to-buffer)
-
-;;Open up external shell(async process)
-(evil-leader/set-key "ss" 'start-external-shell)
-;;Open up internal emacs shell
-(evil-leader/set-key "si" 'ansi-term)
-
-
-;;Create a new file from a buffer. Does not save the file, use :w for that
-(evil-leader/set-key "fw" 'write-file)
-
-;;Open init file
-(evil-leader/set-key "/" 'open-init-file)
-
-;;Eval new init file
-(evil-leader/set-key "?" 'eval-new-init-file)
-
-;;Open up a buffer describing all key bindings
-(evil-leader/set-key "K" 'describe-bindings)
-
-;;Double tap on leader(spacebar) will bring up command execution(M-x)
-(evil-leader/set-key "<SPC>" 'helm-M-x)
-
-;;Open up package manager
-(evil-leader/set-key "." 'package-list-packages)
-
-;;----------------------- Mode specific bindings for leader
-;;-----Elisp bindings
-;;Eval the entire buffer
-(evil-leader/set-key-for-mode 'emacs-lisp-mode "," 'eval-buffer)
-
-;;------Treemacs bindings
-;;Toggle on/off
-(evil-leader/set-key "ft" 'treemacs)
-;;Different ways of opening a file
-(evil-leader/set-key-for-mode 'treemacs-mode "h" 'treemacs-visit-node-vertical-split)
-(evil-leader/set-key-for-mode 'treemacs-mode "v" 'treemacs-visit-node-horizontal-split)
-(evil-leader/set-key-for-mode 'treemacs-mode "o" 'treemacs-visit-node-no-split)
-;;Show dotfiles, this is disabled by default
-(evil-leader/set-key-for-mode 'treemacs-mode "s" 'treemacs-toggle-show-dotfiles)
-
-
-;;------Lisp Mode Bindings
-;;Start Slime
-(evil-leader/set-key-for-mode 'lisp-mode "ds" 'slime)
-;;Compile and load entire file
-(evil-leader/set-key-for-mode 'lisp-mode "dc" 'slime-compile-and-load-file)
-;;Eval one function
-(evil-leader/set-key-for-mode 'lisp-mode "df" 'slime-compile-defun)
-;;Switch to output buffer
-(evil-leader/set-key-for-mode 'lisp-mode "dr" 'slime-switch-to-output-buffer)
-
-;;Shell
-(evil-leader/set-key-for-mode 'ansi-term "dd" '(term-send-raw))
-
-;;Bookmarks the current file automatically
-(evil-leader/set-key "bm" 'make-my-bookmark)
-
-;;Show bookmarks list
-(evil-leader/set-key "bl" 'helm-bookmarks)
-
-;;Enable evil mode everywhere. The initialization is deferred to let evil leader load first
-(use-package evil
-  :ensure t
-  :init
-  :config
-  (setq evil-want-C-u-scroll t)
-  (evil-mode 1)
-  :after (evil-leader))
-
-;;Resizing of windows. (C is the control key)
-(define-key evil-normal-state-map (kbd "<C-left>") 'evil-window-decrease-width)
-(define-key evil-normal-state-map (kbd "<C-right>") 'evil-window-increase-width)
-(define-key evil-normal-state-map (kbd "<C-up>") 'evil-window-increase-height)
-(define-key evil-normal-state-map (kbd "<C-down>") 'evil-window-decrease-height)
-
-
-;;Enter console in Insert state
-(evil-set-initial-state 'ansi-term 'insert)
-
-;;Visual lines
-(define-key evil-normal-state-map (kbd "C-j") 'evil-next-visual-line)
-(define-key evil-normal-state-map (kbd "C-k") 'evil-previous-visual-line)
-
-;;Exit out of brackets while in insert mode
-(define-key evil-insert-state-map (kbd "C-a") 'exit-bracket)
-
-;;Colorfull cursor depending on state
-(setq evil-emacs-state-cursor '("red" box))
-(setq evil-normal-state-cursor '("white" box))
-(setq evil-visual-state-cursor '("orange" box))
-(setq evil-insert-state-cursor '("white" bar))
-(setq evil-replace-state-cursor '("green" bar))
-(setq evil-operator-state-cursor '("red" hollow))
-
-;;Make escape quit anything
-(define-key evil-normal-state-map [escape] 'keyboard-quit)
-(define-key evil-visual-state-map [escape] 'keyboard-quit)
-(define-key minibuffer-local-map [escape] 'keyboard-escape-quit)
-(define-key minibuffer-local-ns-map [escape] 'keyboard-escape-quit)
-(define-key minibuffer-local-completion-map [escape] 'keyboard-escape-quit)
-(define-key minibuffer-local-must-match-map [escape] 'keyboard-escape-quit)
-(define-key minibuffer-local-isearch-map [escape] 'keyboard-quit)
-
-;;For package manager
-(define-key package-menu-mode-map (kbd "j") 'next-line)
-(define-key package-menu-mode-map (kbd "k") 'previous-line)
-(define-key package-menu-mode-map (kbd "l") 'package-menu-describe-package)
-(define-key package-menu-mode-map "i" 'package-menu-mark-install)
-(define-key package-menu-mode-map "x" 'package-menu-execute)
-(define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
-(define-key package-menu-mode-map "q" '(quit-window "KILL")										 )
-(define-key package-menu-mode-map "/" 'evil-search-forward)
-(define-key package-menu-mode-map "?" 'evil-search-backward)
-(define-key package-menu-mode-map "n" 'evil-search-next)
-(define-key package-menu-mode-map "N" 'evil-search-previous)
+;; For package manager
+ (define-key package-menu-mode-map (kbd "j") 'next-line)
+ (define-key package-menu-mode-map (kbd "k") 'previous-line)
+ (define-key package-menu-mode-map (kbd "l") 'package-menu-describe-package)
+ (define-key package-menu-mode-map "i" 'package-menu-mark-install)
+ (define-key package-menu-mode-map "x" 'package-menu-execute)
+ (define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
+(define-key package-menu-mode-map (kbd "q") (lambda ()
+                                         (quit-window t)))
+ (define-key package-menu-mode-map "/" 'evil-search-forward)
+ (define-key package-menu-mode-map "?" 'evil-search-backward)
+ (define-key package-menu-mode-map "n" 'evil-search-next)
+ (define-key package-menu-mode-map "N" 'evil-search-previous)
 
 (use-package helm
-:ensure t
-:config
-(setq helm-M-x-fuzzy-match t)
-;; Basic navigation
-(define-key helm-map (kbd "C-j") 'helm-next-line)
-(define-key helm-map (kbd "C-k") 'helm-previous-line)
-(define-key helm-map (kbd "C-d") 'helm-buffer-run-kill-persistent)
-(define-key helm-map (kbd "C-h") 'helm-execute-persistent-action)
-;; Find files in current dir
-(evil-leader/set-key "ff" 'helm-find-files)
-;; Man pages
-(evil-leader/set-key "fm" 'helm-man-woman)
-;; Locate some file across the system
-(evil-leader/set-key "fl" 'helm-locate)
-;; Find function defs
-(evil-leader/set-key "fa" 'helm-apropos)
-;; Find occurances of some word or regexp
-(evil-leader/set-key "fo" 'helm-occur)
-;;Resume previous session
-(evil-leader/set-key "fp" 'helm-resume)
-;; Open dired
-(evil-leader/set-key "fd" 'dired)
-;; Imenu or semantic, usefull for quick navigation of files
-(evil-leader/set-key "fi" 'helm-semantic-or-imenu)
-;; View register contents
-(evil-leader/set-key "fr" 'helm-register)
+      :ensure t
+      :init
+      ;; Enable helm mode
+      (helm-mode 1)
+      :config
+      (setq helm-mode-fuzzy-match t)
+      ;; Basic navigation
+      (define-key helm-map (kbd "C-j") 'helm-next-line)
+      (define-key helm-map (kbd "C-k") 'helm-previous-line)
+      (define-key helm-map (kbd "C-d") 'helm-buffer-run-kill-persistent)
+      (define-key helm-find-files-map (kbd "C-l") 'helm-execute-persistent-action)
+      (define-key helm-find-files-map (kbd "C-h") 'helm-find-files-up-one-level)
 
-(helm-mode 1)
+      ;; Find files in current dir
+      (evil-leader/set-key "ff" 'helm-find-files)
+
+      ;; Man pages
+      (evil-leader/set-key "fm" 'helm-man-woman)
+
+      ;; Locate some file across the system
+      (evil-leader/set-key "fl" 'helm-locate)
+
+      ;; Find function defs
+      (evil-leader/set-key "fa" 'helm-apropos)
+
+      ;; Find occurances of some word or regexp
+      (evil-leader/set-key "fo" 'helm-occur)
+
+      ;;Resume previous session
+      (evil-leader/set-key "fp" 'helm-resume)
+
+      ;; Open dired
+      (evil-leader/set-key "fd" 'dired)
+
+      ;; Imenu or semantic, usefull for quick navigation of files
+      (evil-leader/set-key "fi" 'helm-semantic-or-imenu)
+
+      ;; View register contents
+      (evil-leader/set-key "fr" 'helm-register)
+
 )
 
+;;Snippets manager
+(use-package yasnippet
+  :ensure t
+  :hook
+  ((prog-mode . (lambda ()
+                  (yas-reload-all)
+                  (yas-minor-mode)))
+   (org-mode . (lambda ()
+                 (yas-reload-all)
+                 (yas-minor-mode)))))
+
+;; Actualy snippets 
+(use-package yasnippet-snippets
+  :ensure t
+  :after (yasnipped))
+
 (use-package projectile
-:ensure t
-:config
-(setq projectile-enable-caching t)
-(evil-leader/set-key "pa" 'projectile-discover-projects-in-directory)
-(evil-leader/set-key "pc" 'projectile-commander))
+  :ensure t
+  :config
+  (evil-leader/set-key "pa" 'projectile-discover-projects-in-directory)
+  (evil-leader/set-key "pc" 'projectile-commander)
+  (evil-leader/set-key "pk" 'projectile-kill-buffers)
+  (projectile-global-mode)
+  (setq projectile-enable-caching t))
 
 (use-package helm-projectile
-:ensure t
-:after projectile
+:ensure t 
+:after (projectile)
 :config
+(helm-projectile-on)
+(setq helm-projectile-fuzzy-match t)
 ;; Master menu
 (evil-leader/set-key "pp" 'helm-projectile)
 ;; Switches to projects
@@ -458,12 +507,12 @@
 ;; Finds a directory and opens it within project
 (evil-leader/set-key "pd" 'helm-projectile-find-dir)
 ;; Switches to a project buffer
-(evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer)
-(helm-projectile-on))
+(evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer))
 
 (defun yav-go-up-org-heading ()
-  (outline-up-heading)
-  (org-cycle))
+"Go up to the parent heading and automatically close it"
+(interactive)
+  (outline-up-heading 1))
 
 ;;Open the agenda from anywhere
 (evil-leader/set-key "oa" 'org-agenda)
@@ -472,7 +521,7 @@
 (evil-leader/set-key "oc" 'org-capture)
 
 ;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO" "MAYBE" "WAITING" "NEXT" "RESEARCH" "|" "DONE" "CANCELLED")))
+(setq org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w)" "NEXT(n)" "RESEARCH(r)" "|" "DONE(d)" "CANCELLED(c)")))
 
 ;;Org capture file
 (setq org-default-notes-file "~/Org/OrgCaptures.org")
@@ -491,7 +540,7 @@
   :mode ("\\.org\\'" . org-mode)
   :init
   (setq org-log-done 'time)
-  (setq org-deadline-warning-days 14)
+  (setq org-deadline-warning-days 18)
   (setq org-agenda-start-on-weekday nil)
   (setq org-agenda-span (quote 4))
   (setq org-agenda-start-day "-1d")
@@ -501,9 +550,8 @@
   (setq org-startup-indented t)
   ;; Hide leading stars. Looks better
   (setq org-hide-leading-stars t)
-
+  ;; Open file in current buffer, not split
   (setq org-link-frame-setup '((file . find-file)))
-
   :config
   ;; Capture templates
   (setq org-capture-templates
@@ -516,16 +564,25 @@
           ("q" "Research/Read About" entry (file+headline "~/Org/Todo.org" "To Find Out")
            "* RESEARCH %?" :kill-buffer t :prepend t)))
 
+  ;; Do not split lines on a new todo
+  (setq org-M-RET-may-split-line '((default . nil)))
+
   (setq org-file-apps
         '((auto-mode . emacs)
-          ("\\.pdf\\'" . "zathura %s")
+          ;;("\\.pdf\\'" . "zathura %s") 
           ("\\.epub\\'" . "zathura %s")
           ("\\.djvu\\'" . "zathura %s")))
+
   ;; Add syntax highlight to blocks
   (setq org-src-fontify-natively t)
-  ;; Dont ask to run code
+
+  ;;Native tabs in src block
+  (setq org-src-tab-acts-natively t)
+
+  ;; Dont ask to run code, simply do it
   (setq org-confirm-babel-evaluate nil)
-  ;; What languages to evel
+
+  ;; What languages to eval in source blocks
   (org-babel-do-load-languages
    'org-babel-load-languages
    '(
@@ -538,13 +595,11 @@
      (emacs-lisp . t)
      (lisp . t)))
 
+
   ;;------Org Mode Bindings
   ;;Insert todo heading(inserts new line, inserts heading then enters insert mode)
-  (evil-leader/set-key-for-mode 'org-mode "dd" #'(lambda ()
-                                                   (interactive)
-                                                   (evil-append-line 1)
-                                                   (org-insert-todo-heading t t)
-                                                   (evil-append-line 1)))
+  (evil-leader/set-key-for-mode 'org-mode "dd" 'org-todo)
+
   ;;Insert a table
   (evil-leader/set-key-for-mode 'org-mode "dt" 'org-table-create-or-convert-from-region)
   ;;Open the link at point
@@ -572,10 +627,18 @@
   ;; Edit code blocks with syntax highlighting and so on
   (evil-leader/set-key-for-mode 'org-mode "de" 'org-edit-special)
 
+  ;;Clock in
+  (evil-leader/set-key-for-mode 'org-mode "oi" 'org-clock-in)
+  ;; Clock out
+  (evil-leader/set-key-for-mode 'org-mode "oo" 'org-clock-out)
+  ;; Cancel
+  (evil-leader/set-key-for-mode 'org-mode "oc" 'org-clock-cancel)
+
   ;; Navigation
   (define-key org-mode-map (kbd "M-j") 'org-forward-heading-same-level)
   (define-key org-mode-map (kbd "M-k") 'org-backward-heading-same-level)
-  (define-key org-mode-map (kbd "M-h") 'yav-go-up-org-heading))
+  (define-key org-mode-map (kbd "M-h") 'yav-go-up-org-heading)
+  )
 
 ;;Helps organize the agenda view
   (use-package org-super-agenda
@@ -626,10 +689,23 @@
 (evil-leader/set-key-for-mode 'org-agenda-mode "dc" 'org-agenda-clock-cancel)
 (evil-leader/set-key-for-mode 'org-agenda-mode "df" 'org-agenda-filter-by-tag)
 
+;; Provides async execution of blocks
+(use-package ob-async
+  :ensure t)
+
 (use-package treemacs
 :ensure t
-:defer t 
+:defer t
+:init
+;;Toggle on/off
+(evil-leader/set-key "ft" 'treemacs)
 :config
+;;Different ways of opening a file
+(evil-leader/set-key-for-mode 'treemacs-mode "h" 'treemacs-visit-node-vertical-split)
+(evil-leader/set-key-for-mode 'treemacs-mode "v" 'treemacs-visit-node-horizontal-split)
+(evil-leader/set-key-for-mode 'treemacs-mode "o" 'treemacs-visit-node-no-split)
+;;Show dotfiles, this is disabled by default
+(evil-leader/set-key-for-mode 'treemacs-mode "s" 'treemacs-toggle-show-dotfiles)
 (setq treemacs-show-hidden-files nil))
 
 (use-package treemacs-evil
@@ -637,12 +713,17 @@
 :after (treemacs))
 
 (use-package markdown-mode
-  :ensure t
-  :defer t
-  :init (setq markdown-command "pandoc")
-  :config (setq markdown-enable-math t)
+:ensure t
+:mode ("\\.md\\'" . markdown-mode)
+("README\\.md\\'" . gfm-mode)
+("\\.markdown\\'" . markdown-mode)
+:hook (add-hook 'markdown-mode-hook 'pandoc-mode)
+:defer t
+:init 
+:config
+(setq markdown-command "pandoc")
+(setq markdown-enable-math t)
 (setq markdown-live-preview-mode t)
-;;-----Markdown bindings
 ;;Headings
 (evil-leader/set-key-for-mode 'markdown-mode "d1" 'markdown-insert-header-atx-1)
 (evil-leader/set-key-for-mode 'markdown-mode "d2" 'markdown-insert-header-atx-2)
@@ -652,10 +733,10 @@
 (evil-leader/set-key-for-mode 'markdown-mode "d6" 'markdown-insert-header-atx-6)
 ;;Insert/format text
 (evil-leader/set-key-for-mode 'markdown-mode "dd" #'(lambda ()
-                              (interactive)
-                              (evil-append-line 1)
-                              (markdown-insert-list-item 1)
-                             ))
+                                                      (interactive)
+                                                      (evil-append-line 1)
+                                                      (markdown-insert-list-item 1)
+                                                      ))
 (evil-leader/set-key-for-mode 'markdown-mode "ds" 'markdown-insert-bold)
 (evil-leader/set-key-for-mode 'markdown-mode "di" 'markdown-insert-italic)
 ;;Table inserts
@@ -670,71 +751,69 @@
 (evil-leader/set-key-for-mode 'markdown-mode "d[" 'pandoc-main-hydra/body)
 ;;Preview output in emacs browser
 (evil-leader/set-key-for-mode 'markdown-mode "do" 'markdown-live-preview-mode)
-
-  :commands (markdown-mode gfm-mode)
-  :mode ("\\.md\\'" . markdown-mode)
-  ("README\\.md\\'" . gfm-mode)
-  ("\\.markdown\\'" . markdown-mode)
-  :hook (add-hook 'markdown-mode-hook 'pandoc-mode))
+:commands (markdown-mode gfm-mode))
 
 (use-package evil-nerd-commenter
   :ensure t
-  :config
-  ;;Evil Nerd commenter
-  (evil-leader/set-key "cl" 'evilnc-comment-or-uncomment-lines)
-  (evil-leader/set-key "cp" 'evilnc-comment-or-uncomment-paragraphs))
+  :defer t
+  :init
+  (evil-leader/set-key "cp" 'evilnc-comment-or-uncomment-paragraphs)
+  (evil-leader/set-key "cl" 'evilnc-comment-or-uncomment-lines))
 
+;; Stolen from the evil collection
 (defun evil-collection-pdf-view-next-line-or-next-page (&optional count)
   "'evil' wrapper include a count argument to `pdf-view-next-line-or-next-page'"
   (interactive "P")
-  (if count
-      (dotimes (_ count nil)
-    (pdf-view-next-page 1))
-    (pdf-view-next-line-or-next-page 3)))
+      (if count
+          (dotimes (_ count nil)
+        (pdf-view-next-page 1))
+        (pdf-view-next-line-or-next-page 3)))
 
 (defun evil-collection-pdf-view-previous-line-or-previous-page (&optional count)
   "'evil' wrapper include a count argument to `pdf-view-previous-line-or-previous-page'"
   (interactive "P")
   (if count
       (dotimes (_ count nil)
-    (pdf-view-previous-page 1))
-(pdf-view-previous-line-or-previous-page 3)))
+        (pdf-view-previous-page 1))
+    (pdf-view-previous-line-or-previous-page 3)))
 
 (defun evil-collection-pdf-view-goto-page (&optional page)
-  "`evil' wrapper around `pdf-view-last-page'."
-  (interactive "P")
-  (if page
-      (pdf-view-goto-page page)
-    (pdf-view-last-page)
-(image-eob)))
+      "`evil' wrapper around `pdf-view-last-page'."
+      (interactive "P")
+      (if page
+          (pdf-view-goto-page page)
+        (pdf-view-last-page)
+        (image-eob)))
 
 (use-package pdf-tools
-:ensure t
-:config
-(pdf-tools-install)
-(setq pdf-view-continuous t)
-(setq pdf-view-display-size 'fit-width)
-(evil-set-initial-state 'pdf-view-mode 'normal)
-(evil-define-key 'normal pdf-view-mode-map (kbd "j") 'evil-collection-pdf-view-next-line-or-next-page
-  (kbd "k") 'evil-collection-pdf-view-previous-line-or-previous-page
-  (kbd "J") 'pdf-view-next-page
-  (kbd "K") 'pdf-view-previous-page
-  (kbd "i") 'pdf-outline
-  (kbd "q") 'bury-buffer
-  (kbd "Q") 'kill-current-buffer
-  (kbd "gg") 'pdf-view-first-page
-  (kbd "G") 'evil-collection-pdf-view-goto-page))
+  :ensure t
+    :mode ("\\.pdf\\'" . pdf-view-mode)
+    :config
+    (pdf-tools-install)
+    (setq pdf-view-continuous t)
+    (setq pdf-view-display-size 'fit-width)
+    (evil-set-initial-state 'pdf-view-mode 'normal)
+    (evil-define-key 'normal pdf-view-mode-map (kbd "j") 'evil-collection-pdf-view-next-line-or-next-page
+      (kbd "k") 'evil-collection-pdf-view-previous-line-or-previous-page
+      (kbd "J") 'pdf-view-next-page
+      (kbd "K") 'pdf-view-previous-page
+      (kbd "i") 'pdf-outline
+      (kbd "q") 'bury-buffer
+      (kbd "Q") 'kill-current-buffer
+      (kbd "gg") 'pdf-view-first-page
+      (kbd "G") 'evil-collection-pdf-view-goto-page))
 
-  (setq doc-view-continuous t)
-  (evil-set-initial-state 'doc-view-mode 'normal)
-  (evil-define-key 'normal doc-view-mode-map (kbd "j") 'doc-view-next-line-or-next-page
-    (kbd "k") 'doc-view-previous-line-or-previous-page
-    (kbd "J") 'doc-view-next-page
-    (kbd "K") 'doc-view-previous-page
-    (kbd "q") 'bury-buffer
-    (kbd "Q") 'kill-current-buffer
-    (kbd "gg") 'doc-view-first-page
-    (kbd "G") 'doc-view-last-page)
+
+(setq doc-view-continuous t)
+(evil-set-initial-state 'doc-view-mode 'normal)
+      (evil-define-key 'normal doc-view-mode-map (kbd "j") 'doc-view-next-line-or-next-page
+        (kbd "k") 'doc-view-previous-line-or-previous-page
+        (kbd "J") 'doc-view-next-page
+        (kbd "K") 'doc-view-previous-page
+        (kbd "q") 'bury-buffer
+        (kbd "Q") 'kill-current-buffer
+        (kbd "gg") 'doc-view-first-page
+        (kbd "G") 'doc-view-last-page)
 
 (use-package pomodoro
 :ensure t
@@ -747,45 +826,39 @@
 :hook (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings)
 :after (markdown-mode))
 
-;;Snippets manager
-(use-package yasnippet
-			:ensure t)
-
-;; Actualy snippets 
-(use-package yasnippet-snippets
-:ensure t)
-
 ;;Used to async linting for many languages
 (use-package flycheck
   :ensure t
   :defer t
+  :hook((prog-mode . flycheck-mode))
   :config
   (evil-leader/set-key "ej" 'flycheck-next-error)
   (evil-leader/set-key "ek" 'flycheck-previous-error))
 
 (use-package flycheck-pos-tip
   :ensure t
-  :after flycheck)
+  :after (flycheck))
 
 (use-package magit
   :ensure t
+  :defer t
   :init
-  (evil-leader/set-key "vs" 'magit-status)
-  (evil-leader/set-key "vp" 'magit-push)
-  (evil-leader/set-key "vc" 'magit-commit)
-  (evil-leader/set-key "vd" 'magit-pull))
+  (evil-leader/set-key "ms" 'magit-status)
+  (evil-leader/set-key "mp" 'magit-push)
+  (evil-leader/set-key "mc" 'magit-commit)
+  (evil-leader/set-key "md" 'magit-pull))
 
 (use-package magithub
   :ensure t
   :after (magit))
 
-(evil-leader/set-key "km" 'start-which-key-for-mode)
-(evil-leader/set-key "ka" 'start-which-key-for-full-keymap)
-(evil-leader/set-key "kk" 'stop-which-key-for-all)
-
 (use-package which-key
   :ensure t
   :defer t
+  :init
+  (evil-leader/set-key "km" 'start-which-key-for-mode)
+  (evil-leader/set-key "ka" 'start-which-key-for-full-keymap)
+  (evil-leader/set-key "kk" 'stop-which-key-for-all)
   :config
   (setq which-key-allow-evil-operators t)
   (which-key-setup-minibuffer))
@@ -820,6 +893,7 @@
 
 ;; Provides various customizable filters. Simply avoids regexps
 (use-package dired-filter
+  :after (dired-ranger)
   :ensure t)
 
 ;; Run the hook
@@ -842,17 +916,28 @@
 ;; Simple shortcuts for my bookmarks
 (evil-global-set-key 'normal ",q" (lambda ()
                                     (interactive)
+                                    (bookmark-maybe-load-default-file)
                                     (bookmark-jump "Books")))
 (evil-global-set-key 'normal ",w" (lambda ()
                                     (interactive)
+                                    (bookmark-maybe-load-default-file)
                                     (bookmark-jump "Downloads")))
 (evil-global-set-key 'normal ",s" (lambda ()
                                     (interactive)
+                                    (bookmark-maybe-load-default-file)
                                     (bookmark-jump "School")))
+(evil-global-set-key 'normal ",i" (lambda ()
+                                    (interactive)
+                                    (bookmark-maybe-load-default-file)
+                                    (bookmark-jump "EmacsInit")))
 
 (use-package nov
   :ensure t
   :mode ("\\.epub\\'" . nov-mode))
+
+(use-package org-noter
+  :ensure t
+  :defer t)
 
 ;;Display tooltips for functions. Only activated in emacs lisp mode
 (use-package company-quickhelp
@@ -880,8 +965,7 @@
 ;;Keeps a file containing the most used completions
 (use-package company-statistics
 :ensure t
-:after (company)
-:defer t)
+:after (company))
 
 ;;Activate company mode in lisp mode
 (use-package slime-company
@@ -1010,8 +1094,7 @@
   :mode "\\.js\\'")
 
 (use-package tide
-  :ensure t
-  :after (js2-mode))
+  :ensure t)
 
 
 (use-package js2-refactor
@@ -1022,14 +1105,14 @@
   :ensure t
   :after (js2-mode))
 
-(add-hook 'js2-mode-hook #'(lambda ()
-                            (tide-setup)
-                            (tide-mode)
-                            (eldoc-mode +1)
-                            (flycheck-mode +1)
-                            (tide-hl-identifier-mode +1)
-                            (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-                            (company-mode +1)))
+;; (add-hook 'js2-mode-hook #'(lambda ()
+;;                             (tide-setup)
+;;                             (tide-mode)
+;;                             (eldoc-mode +1)
+;;                             (flycheck-mode +1)
+;;                             (tide-hl-identifier-mode +1)
+;;                             (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+;;                             (company-mode +1)))
 
 (use-package nasm-mode
 :ensure t

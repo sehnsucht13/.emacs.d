@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Dictionary-new-word
+# key: dic 
+# --
+ - ${1: word} :: ${2: translation}, ${3:gender}
+$0

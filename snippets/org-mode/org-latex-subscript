@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: org-latex-subscript
+# key: sub
+# --
+$1_\{$2\}$0

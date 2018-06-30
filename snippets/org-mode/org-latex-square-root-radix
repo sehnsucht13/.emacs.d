@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: org-latex-square-root-radix
+# key: sqrt
+# --
+
+\\sqrt[$1]\{$2\} $0
