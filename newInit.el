@@ -129,7 +129,7 @@
                      "we" 'evil-next-buffer)
 
 ;;Show all buffers available 
-(evil-leader/set-key "ws" 'helm-buffers-list)
+(evil-leader/set-key "ws" 'helm-mini)
 
 ;;Create a new buffer with given input or switch if it exists
 (evil-leader/set-key "nb" 'switch-to-buffer)
@@ -182,7 +182,7 @@
 (evil-leader/set-key "bm" 'make-my-bookmark)
 
 ;;Show bookmarks list
-(evil-leader/set-key "bl" 'helm-bookmarks)
+(evil-leader/set-key "bl" 'helm-filtered-bookmarks)
 
 ;;Enable evil mode everywhere. The initialization is deferred to let evil leader load first
 (use-package evil
@@ -397,6 +397,7 @@
 (evil-leader/set-key-for-mode 'org-mode "ila" 'wiki-latex-block)
 (evil-leader/set-key-for-mode 'org-mode "ilp" 'wiki-lisp-block)
 (evil-leader/set-key-for-mode 'org-mode "ow" 'open-wiki-index)
+(evil-leader/set-key-for-mode 'org-mode "is" 'wiki-sh-block)
 
 ;; Set normal state
 (evil-set-initial-state 'help-mode 'normal)
@@ -470,18 +471,14 @@
 ;;Snippets manager
 (use-package yasnippet
   :ensure t
-  :hook
-  ((prog-mode . (lambda ()
-                  (yas-reload-all)
-                  (yas-minor-mode)))
-   (org-mode . (lambda ()
-                 (yas-reload-all)
-                 (yas-minor-mode)))))
+  :defer 3
+  :config
+  (yas-global-mode 1))
 
-;; Actualy snippets 
+;; Actual snippets 
 (use-package yasnippet-snippets
   :ensure t
-  :after (yasnipped))
+  :after (yasnippet))
 
 (use-package projectile
   :ensure t
@@ -562,7 +559,9 @@
           ("s" "School question" entry (file+headline "~/Org/School.org" "Questions")
            "* QUESTION %?" :kill-buffer t :prepend t)
           ("q" "Research/Read About" entry (file+headline "~/Org/Todo.org" "To Find Out")
-           "* RESEARCH %?" :kill-buffer t :prepend t)))
+           "* RESEARCH %?" :kill-buffer t :prepend t)
+          ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
+                                                   "* TODO %?" :kill-buffer t :prepend t)))
 
   ;; Do not split lines on a new todo
   (setq org-M-RET-may-split-line '((default . nil)))
@@ -611,7 +610,8 @@
                                                    (interactive)
                                                    (org-schedule 1)
                                                    (org-cycle)
-                                                   (kill-buffer "*Calendar*")))
+                                                   (kill-buffer "*Calendar*")
+                                                   (evil-append-line 1)))
   ;; Way too much to explain. Very important
   (evil-leader/set-key-for-mode 'org-mode "dr" 'org-ctrl-c-ctrl-c)
 
@@ -620,7 +620,8 @@
                                                   (interactive)
                                                   (org-deadline 1)
                                                   (org-cycle)
-                                                  (kill-buffer "*Calendar*")))
+                                                  (kill-buffer "*Calendar*")
+                                                  (evil-append-line 1)))
   ;;Compilation menu
   (evil-leader/set-key-for-mode 'org-mode "dc" 'org-export-dispatch)
 
@@ -632,7 +633,7 @@
   ;; Clock out
   (evil-leader/set-key-for-mode 'org-mode "oo" 'org-clock-out)
   ;; Cancel
-  (evil-leader/set-key-for-mode 'org-mode "oc" 'org-clock-cancel)
+  (evil-leader/set-key-for-mode 'org-mode "os" 'org-clock-cancel)
 
   ;; Navigation
   (define-key org-mode-map (kbd "M-j") 'org-forward-heading-same-level)

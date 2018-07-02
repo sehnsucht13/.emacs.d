@@ -1,1 +1,1 @@
-("~/.emacs.d/" "~/Org/" "~/pprojects/RSMC/")
+("~/.emacs.d/" "~/pprojects/evil-eunuch/" "~/pprojects/" "~/Org/" "~/EmacsSource/emacs/" "~/pprojects/RSMC/")
