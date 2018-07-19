@@ -19,19 +19,23 @@
 (add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
 
 ;;Remove some of the default tool bars and scroll bars   
-(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
-;; Remove splash screen and startup message
-(setq inhibit-splash-screen t
-      inhibit-startup-echo-area-message t)
+  ;; Remove splash screen and startup message
+  (setq inhibit-splash-screen t
+        inhibit-startup-echo-area-message t)
 
-;;Smooth scrolling
-(setq scroll-conservatively 100)
+  ;;Smooth scrolling
+  (setq scroll-conservatively 100)
 
-;;Theme settings
-(load-theme 'monokai t)
+  ;;Install theme package
+  (use-package monokai-theme
+    :ensure t)
+
+  ;;Theme settings
+  (load-theme 'wombat t)
 
 ;;Disable backup files
 (setq make-backup-files nil)
@@ -71,7 +75,7 @@
 (ad-activate 'ansi-term)
 
 ;;Set the initial buffer to org todo list
-(setf initial-buffer-choice #'(lambda () (find-file "~/Org/Todo.org")))
+(setf initial-buffer-choice #'(lambda () (find-file "~/Org/Agenda.org")))
 
 (setq fill-column 80)
 
@@ -101,10 +105,10 @@
   (evil-leader/set-leader "<SPC>"))
 ;;-------------------------- Evil leader bindings 
 ;;Window navigation
-(evil-leader/set-key "wj" 'evil-window-down
-                     "wh" 'evil-window-left
-                     "wk" 'evil-window-down
-                     "wl" 'evil-window-right
+(evil-leader/set-key "j" 'evil-window-down
+                     "h" 'evil-window-left
+                     "k" 'evil-window-down
+                     "l" 'evil-window-right
                      ;;Quick switch to next window
                      "ww" 'evil-window-next) 
 
@@ -131,14 +135,11 @@
 ;;Show all buffers available 
 (evil-leader/set-key "ws" 'helm-mini)
 
-;;Create a new buffer with given input or switch if it exists
-(evil-leader/set-key "nb" 'switch-to-buffer)
-
 ;;Open up external shell(async process)
 (evil-leader/set-key "ss" 'start-external-shell)
+
 ;;Open up internal emacs shell
 (evil-leader/set-key "si" 'ansi-term)
-
 
 ;;Create a new file from a buffer. Does not save the file, use :w for that
 (evil-leader/set-key "fw" 'write-file)
@@ -148,9 +149,6 @@
 
 ;;Eval new init file
 (evil-leader/set-key "?" 'eval-new-init-file)
-
-;;Open up a buffer describing all key bindings
-(evil-leader/set-key "K" 'describe-bindings)
 
 ;;Double tap on leader(spacebar) will bring up command execution(M-x)
 (evil-leader/set-key "<SPC>" 'helm-M-x)
@@ -178,19 +176,17 @@
 ;;Shell
 (evil-leader/set-key-for-mode 'ansi-term "dd" '(term-send-raw))
 
-;;Bookmarks the current file automatically
-(evil-leader/set-key "bm" 'make-my-bookmark)
-
 ;;Show bookmarks list
 (evil-leader/set-key "bl" 'helm-filtered-bookmarks)
 
 ;;Enable evil mode everywhere. The initialization is deferred to let evil leader load first
 (use-package evil
   :ensure t
-  :config
+  :after (evil-leader)
+  :init
   (setq evil-want-C-u-scroll t)
-  (evil-mode 1)
-  :after (evil-leader))
+  :config
+  (evil-mode 1))
 
 ;;Resizing of windows. (C is the control key)
 (define-key evil-normal-state-map (kbd "<C-left>") 'evil-window-decrease-width)
@@ -287,104 +283,6 @@
   "Automatically creates a bookmark with the name Current + filename"
   (interactive)
   (bookmark-set (buffer-name)))
-
-(defun open-wiki-index ()
-  "Opens the wiki index"
-  (interactive)
-  (find-file "~/Wiki/index.org"))
-
-(defun wiki-emacs-lisp-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC emacs-lisp")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-(defun wiki-python-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC python")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-(defun wiki-latex-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC latex")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-(defun wiki-java-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC java")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-
-(defun wiki-javascript-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC js")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-(defun wiki-sh-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC sh")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-
-(defun wiki-haskell-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC haskell")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-
-(defun wiki-C-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC C")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-
-(defun wiki-C++-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC C++")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-
-(defun wiki-rust-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC rust")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
-
-(defun wiki-lisp-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC lisp")
-  (org-return)
-  (org-return)
-  (insert "#+END_SRC")
-  (previous-line 1))
 
 (evil-leader/set-key-for-mode 'org-mode "ih" 'wiki-haskell-block)
 (evil-leader/set-key-for-mode 'org-mode "ija" 'wiki-java-block)
@@ -486,11 +384,11 @@
   (evil-leader/set-key "pa" 'projectile-discover-projects-in-directory)
   (evil-leader/set-key "pc" 'projectile-commander)
   (evil-leader/set-key "pk" 'projectile-kill-buffers)
-  (projectile-global-mode)
+  (projectile-mode 1)
   (setq projectile-enable-caching t))
 
 (use-package helm-projectile
-:ensure t 
+  :ensure t 
 :after (projectile)
 :config
 (helm-projectile-on)
@@ -518,7 +416,7 @@
 (evil-leader/set-key "oc" 'org-capture)
 
 ;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w)" "NEXT(n)" "RESEARCH(r)" "|" "DONE(d)" "CANCELLED(c)")))
+(setq org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w)" "CURRENT(f)" "NEXT(n)"  "|" "DONE(d)" "CANCELLED(c)")))
 
 ;;Org capture file
 (setq org-default-notes-file "~/Org/OrgCaptures.org")
@@ -539,7 +437,7 @@
   (setq org-log-done 'time)
   (setq org-deadline-warning-days 18)
   (setq org-agenda-start-on-weekday nil)
-  (setq org-agenda-span (quote 4))
+  (setq org-agenda-span (quote 7))
   (setq org-agenda-start-day "-1d")
   (setq org-agenda-remove-tags t)
   (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
@@ -552,13 +450,13 @@
   :config
   ;; Capture templates
   (setq org-capture-templates
-        '(("t" "Todo entry" entry (file+headline "~/Org/Todo.org" "Today")
+        '(("t" "Todo entry" entry (file+headline "~/Org/Agend.org" "Today")
            "* TODO %?" :kill-buffer t)
-          ("m" "Maybe entry" entry (file+headline "~/Org/Todo.org" "Today")
+          ("m" "Maybe entry" entry (file+headline "~/Org/Agenda.org" "Maybe Today")
            "* MAYBE %?" :kill-buffer t)
           ("s" "School question" entry (file+headline "~/Org/School.org" "Questions")
            "* QUESTION %?" :kill-buffer t :prepend t)
-          ("q" "Research/Read About" entry (file+headline "~/Org/Todo.org" "To Find Out")
+          ("r" "Research/Read About" entry (file+headline "~/Wiki/ProjectIdeas/ToResearch.org" "To Find Out")
            "* RESEARCH %?" :kill-buffer t :prepend t)
           ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
                                                    "* TODO %?" :kill-buffer t :prepend t)))
@@ -568,7 +466,7 @@
 
   (setq org-file-apps
         '((auto-mode . emacs)
-          ;;("\\.pdf\\'" . "zathura %s") 
+          ("\\.pdf\\'" . "zathura %s") 
           ("\\.epub\\'" . "zathura %s")
           ("\\.djvu\\'" . "zathura %s")))
 
@@ -647,10 +545,8 @@
   :config
   (org-super-agenda-mode)
   (setq org-super-agenda-groups
-          '((:name "Next" :todo "NEXT")
-            (:name "Today" :todo "TODO")
+          '((:name "Today" :todo "TODO")
             (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
-            (:name "Daily" :todo "HABIT")
             (:name "Maybe" :todo "MAYBE"))))
 
 ;;Provides mathematical symbols in org mode
@@ -692,7 +588,24 @@
 
 ;; Provides async execution of blocks
 (use-package ob-async
-  :ensure t)
+  :ensure t
+  :after (org))
+
+(use-package org-bullets
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook (lambda ()
+                             (org-bullets-mode 1))))
+
+(use-package org-download
+  :ensure t
+  :after (org)
+  :config
+  (add-hook 'dired-mode-hook 'org-download-enable))
+
+(use-package org-noter
+  :ensure t
+  :defer t)
 
 (use-package treemacs
 :ensure t
@@ -816,16 +729,12 @@
         (kbd "gg") 'doc-view-first-page
         (kbd "G") 'doc-view-last-page)
 
-(use-package pomodoro
-:ensure t
-:defer t
-:config
-(pomodoro-add-to-mode-line))
-
 (use-package pandoc-mode
-:ensure t
-:hook (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings)
-:after (markdown-mode))
+  :ensure t
+  :defer t
+  :init (add-hook 'pandoc-mode-hook 'pandoc-load-default-settings)
+  (evil-leader/set-key "[" (lambda ()
+                             (pandoc-@-hydra/pandoc-main-hydra/body-and-exit))))
 
 ;;Used to async linting for many languages
 (use-package flycheck
@@ -853,17 +762,6 @@
   :ensure t
   :after (magit))
 
-(use-package which-key
-  :ensure t
-  :defer t
-  :init
-  (evil-leader/set-key "km" 'start-which-key-for-mode)
-  (evil-leader/set-key "ka" 'start-which-key-for-full-keymap)
-  (evil-leader/set-key "kk" 'stop-which-key-for-all)
-  :config
-  (setq which-key-allow-evil-operators t)
-  (which-key-setup-minibuffer))
-
 ;;Bindings for the emacs calendar. Used often with deadlines and overall agenda related tasks
 (define-key calendar-mode-map "j" 'calendar-forward-day)
 (define-key calendar-mode-map "k" 'calendar-backward-day)
@@ -882,7 +780,11 @@
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
   (define-key dired-mode-map (kbd "^") (lambda ()
                                          (interactive)
-                                         (find-alternate-file ".."))))
+                                         (find-alternate-file "..")))
+  (evil-define-key 'normal dired-mode-map "H" (lambda ()
+                                                (interactive)
+                                                (find-alternate-file "..")))
+  (evil-define-key 'normal dired-mode-map "L" 'dired-find-alternate-file))
 
 ;; Enables normal copy and paste
 (use-package dired-ranger
@@ -892,10 +794,13 @@
               ("X" . dired-ranger-move)
               ("P" . dired-ranger-paste)))
 
-;; Provides various customizable filters. Simply avoids regexps
+;; Provides various customizable filters. Simply avoids writing regexps everytime
 (use-package dired-filter
   :after (dired-ranger)
-  :ensure t)
+  :ensure t
+  :config
+  (define-key dired-mode-map (kbd "M-f") dired-filter-map))
+
 
 ;; Run the hook
 (add-hook 'dired-mode-hook 'my-dired-mode-setup)
@@ -932,13 +837,35 @@
                                     (bookmark-maybe-load-default-file)
                                     (bookmark-jump "EmacsInit")))
 
-(use-package nov
-  :ensure t
-  :mode ("\\.epub\\'" . nov-mode))
+(evil-global-set-key 'normal ",o" (lambda ()
+                                    (interactive)
+                                    (bookmark-maybe-load-default-file)
+                                    (bookmark-jump "OrgFiles")))
 
-(use-package org-noter
+(use-package elfeed
   :ensure t
-  :defer t)
+  :commands elfeed
+  :config
+  (evil-define-key 'normal elfeed-search-mode-map "q" 'elfeed-search-quit-window
+    "o" 'elfeed-search-browse-url
+    "g" 'elfeed-search-fetch
+    "e" 'run-elfeed-hydra))
+
+(use-package elfeed-org
+  :ensure t
+  :after (elfeed)
+  :config
+  (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
+
+(defhydra yk/hydra-elfeed ()
+  "filter . take 1"
+  ("e" (elfeed-search-set-filter "@1-week-ago +emacs +unread") "Emacs")
+  ("n" (elfeed-search-set-filter "@3-days-ago +news +unread") "News")
+  ("t" (elfeed-search-set-filter "@1-week-ago +tech +unread") "Tech"))
+
+(defun run-elfeed-hydra ()
+  (interactive)
+  (yk/hydra-elfeed/body))
 
 ;;Display tooltips for functions. Only activated in emacs lisp mode
 (use-package company-quickhelp
@@ -967,6 +894,28 @@
 (use-package company-statistics
 :ensure t
 :after (company))
+
+(use-package lsp-mode
+  :ensure t
+  :init
+  (add-hook 'c-mode-hook 'lsp-mode))
+
+;;This company backend is used for language servers
+(use-package company-lsp
+  :ensure t
+  :after (lsp-mode)
+  :config
+  (push 'company-lsp company-backends)
+  (setq company-lsp-cache-candidates 'auto)
+  (setq company-lsp-async t)
+  (setq company-lsp-enable-recompletion t))
+
+(use-package lsp-ui
+  :ensure t
+  :init
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  (add-hook 'c-mode-hook 'flycheck-mode)
+  (add-hook 'c++-mode-hook 'flycheck-mode))
 
 ;;Activate company mode in lisp mode
 (use-package slime-company
@@ -1061,6 +1010,7 @@
 
 (use-package company-irony-c-headers
   :ensure t
+  :after (company-irony)
   :config
   (add-to-list 'company-backends 'company-irony-c-headers))
 
@@ -1076,7 +1026,9 @@
             :config
             (add-hook 'c-mode-hook 'irony-mode)
             (add-hook 'c++-mode-hook 'irony-mode)
-            (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+            (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+            (evil-leader/set-key-for-mode 'c-mode "dp" 'irony-parse-buffer)
+            (evil-leader/set-key-for-mode 'c++-mode "dp" 'irony-parse-buffer))
 
 (add-hook 'c-mode-hook (lambda ()
                 (company-mode)
@@ -1090,12 +1042,32 @@
                 (company-statistics-mode)
                 (flycheck-mode)))
 
+(defun irony-parse-buffer ()
+  "Parses the current buffer for irony mode to provide completions"
+  (interactive)
+  (irony--run-task-asynchronously (irony--parse-task)
+                                  (lambda (result))))
+
+;; (defun enable-my-cquery ()
+;;   (condition-case nil
+;;       (lsp-cquery-enable)
+;;     (user-error nil)))
+
+;; (use-package cquery
+;;   :ensure t
+;;   :commands lsp-cquery-enable
+;;   :init (add-hook 'c-mode-common-hook #'enable-my-cquery)
+;;   :config
+;;   (setq cquery-executable "/usr/bin/cquery")
+;; (setq cquery-extra-init-params '(:index (:comments 2) :cacheFormat "msgpack" :completion (:detailedLabel t))))
+
 (use-package js2-mode
   :ensure t
   :mode "\\.js\\'")
 
 (use-package tide
-  :ensure t)
+  :ensure t
+  :after (js2-mode))
 
 
 (use-package js2-refactor
@@ -1106,14 +1078,14 @@
   :ensure t
   :after (js2-mode))
 
-;; (add-hook 'js2-mode-hook #'(lambda ()
-;;                             (tide-setup)
-;;                             (tide-mode)
-;;                             (eldoc-mode +1)
-;;                             (flycheck-mode +1)
-;;                             (tide-hl-identifier-mode +1)
-;;                             (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
-;;                             (company-mode +1)))
+  (add-hook 'js2-mode-hook (lambda ()
+                              (tide-setup)
+                              (tide-mode)
+                              (eldoc-mode +1)
+                              (flycheck-mode +1)
+                              (tide-hl-identifier-mode +1)
+                              (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+                              (company-mode +1)))
 
 (use-package nasm-mode
 :ensure t

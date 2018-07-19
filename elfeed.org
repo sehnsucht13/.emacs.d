@@ -1,0 +1,14 @@
+* RSS Feeds                                                          :elfeed:
+** News                                                               :news:
+*** http://feeds.bbci.co.uk/news/world/rss.xml
+*** https://rss.cbc.ca/lineup/topstories.xml
+*** https://rss.cbc.ca/lineup/canada.xml
+*** https://rss.cbc.ca/lineup/canada-britishcolumbia.xml
+*** http://feeds.reuters.com/reuters/MostRead
+*** http://feeds.reuters.com/reuters/topNews
+** Emacs                                                             :emacs:
+*** http://planet.emacsen.org/atom.xml
+** Tech                                                               :tech:
+*** https://www.wired.com/feed/rss
+*** https://feeds.feedburner.com/arstechnica/features
+*** https://feeds.feedburner.com/arstechnica/index 
