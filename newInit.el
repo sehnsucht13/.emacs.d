@@ -284,6 +284,12 @@
   (interactive)
   (bookmark-set (buffer-name)))
 
+(load-file "~/pprojects/helm-org-wiki/helm-org-wiki.el")
+
+(evil-leader/set-key  "ti" 'helm-org-wiki-open-index)
+(evil-leader/set-key "tw" 'helm-org-wiki-walk-wiki)
+(evil-leader/set-key "tn" 'helm-org-wiki-create-new-article)
+
 (evil-leader/set-key-for-mode 'org-mode "ih" 'wiki-haskell-block)
 (evil-leader/set-key-for-mode 'org-mode "ija" 'wiki-java-block)
 (evil-leader/set-key-for-mode 'org-mode "ijs" 'wiki-javascript-block)
@@ -294,7 +300,6 @@
 (evil-leader/set-key-for-mode 'org-mode "ie" 'wiki-emacs-lisp-block)
 (evil-leader/set-key-for-mode 'org-mode "ila" 'wiki-latex-block)
 (evil-leader/set-key-for-mode 'org-mode "ilp" 'wiki-lisp-block)
-(evil-leader/set-key-for-mode 'org-mode "ow" 'open-wiki-index)
 (evil-leader/set-key-for-mode 'org-mode "is" 'wiki-sh-block)
 
 ;; Set normal state
@@ -443,6 +448,8 @@
   (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
   ;; start indented
   (setq org-startup-indented t)
+  ;;hide bold,italics...
+  (setq org-hide-emphasis-markers t)
   ;; Hide leading stars. Looks better
   (setq org-hide-leading-stars t)
   ;; Open file in current buffer, not split
@@ -450,7 +457,7 @@
   :config
   ;; Capture templates
   (setq org-capture-templates
-        '(("t" "Todo entry" entry (file+headline "~/Org/Agend.org" "Today")
+        '(("t" "Todo entry" entry (file+headline "~/Org/Agenda.org" "Today")
            "* TODO %?" :kill-buffer t)
           ("m" "Maybe entry" entry (file+headline "~/Org/Agenda.org" "Maybe Today")
            "* MAYBE %?" :kill-buffer t)
@@ -844,28 +851,35 @@
 
 (use-package elfeed
   :ensure t
-  :commands elfeed
+  :defer t
   :config
   (evil-define-key 'normal elfeed-search-mode-map "q" 'elfeed-search-quit-window
     "o" 'elfeed-search-browse-url
-    "g" 'elfeed-search-fetch
     "e" 'run-elfeed-hydra))
 
 (use-package elfeed-org
   :ensure t
   :after (elfeed)
   :config
-  (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
+  (setq rmh-elfeed-org-files (list"~/.emacs.d/elfeed.org")))
 
 (defhydra yk/hydra-elfeed ()
   "filter . take 1"
   ("e" (elfeed-search-set-filter "@1-week-ago +emacs +unread") "Emacs")
   ("n" (elfeed-search-set-filter "@3-days-ago +news +unread") "News")
-  ("t" (elfeed-search-set-filter "@1-week-ago +tech +unread") "Tech"))
+  ("t" (elfeed-search-set-filter "@1-week-ago +tech +unread") "Tech")
+  ("f" (elfeed-search-fetch) "Refresh"))
 
 (defun run-elfeed-hydra ()
   (interactive)
   (yk/hydra-elfeed/body))
+
+(defun run-elfeed ()
+  "Runs all the necessary actions and refreshes elfeed"
+  (interactive)
+  (elfeed-org)
+  (elfeed)
+  (elfeed-update))
 
 ;;Display tooltips for functions. Only activated in emacs lisp mode
 (use-package company-quickhelp

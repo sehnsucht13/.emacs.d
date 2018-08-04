@@ -29,7 +29,7 @@
  '(org-super-agenda-mode t)
  '(package-selected-packages
    (quote
-	(emacs-cquery flycheck-irony irony-eldoc elfeed elfeed-org org-bullets org-download neotree ob-go ob-typescript helm-org-rifle helm-dictionary anki-editor solarized-theme zenburn-theme ob-async esup org-noter tide nov auctex company-auctex org-plus-contrib ob-rust origami dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil rjsx-mode racer pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
+	(org-board emacs-cquery flycheck-irony irony-eldoc elfeed elfeed-org org-bullets org-download neotree ob-go ob-typescript helm-org-rifle helm-dictionary anki-editor solarized-theme zenburn-theme ob-async esup org-noter tide nov auctex company-auctex org-plus-contrib ob-rust origami dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil rjsx-mode racer pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
  '(pdf-cache-image-limit 15)
  '(pdf-cache-prefetch-delay 0.7)
  '(pdf-occur-global-minor-mode t)
