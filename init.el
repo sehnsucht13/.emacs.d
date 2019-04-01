@@ -22,14 +22,14 @@
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    (quote
-	("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
+	("100e7c5956d7bb3fd0eebff57fde6de8f3b9fafa056a2519f169f85199cc1c96" "d1b4990bd599f5e2186c3f75769a2c5334063e9e541e37514942c27975700370" "cd736a63aa586be066d5a1f0e51179239fe70e16a9f18991f6f5d99732cabb32" "f0dc4ddca147f3c7b1c7397141b888562a48d9888f1595d69572db73be99a024" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
  '(eclim-eclipse-dirs (quote ("/usr/lib/eclipse")))
  '(eclim-executable "/usr/lib/eclipse/eclim")
  '(org-agenda-files (quote ("~/Org/Agenda.org" "~/Org/School.org")))
  '(org-super-agenda-mode t)
  '(package-selected-packages
    (quote
-	(org-board emacs-cquery flycheck-irony irony-eldoc elfeed elfeed-org org-bullets org-download neotree ob-go ob-typescript helm-org-rifle helm-dictionary anki-editor solarized-theme zenburn-theme ob-async esup org-noter tide nov auctex company-auctex org-plus-contrib ob-rust origami dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil rjsx-mode racer pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
+	(annotate evil-easymotion evil-lispy evil-magit evil-paredit flycheck-golangci-lint flycheck-haskell flycheck-rust go-gopath go-guru go-rename godoctor minibuffer-cua minibuffer-line company-c-headers lsp-go lsp-haskell lsp-rust magit-todos go-mode go-snippets lsp ccls company-shell company-box lsp-python yasnippet org dashboard org-board emacs-cquery flycheck-irony irony-eldoc elfeed elfeed-org org-bullets org-download neotree ob-go ob-typescript helm-org-rifle helm-dictionary anki-editor solarized-theme ob-async esup org-noter tide nov auctex company-auctex org-plus-contrib ob-rust origami dired-filter dired-ranger org-journal cquery tomatinho helm-spotify-plus monokai-theme company-lsp git-gutter-fringe+ lsp-intellij lsp-ui magit helm-projectile indium company-emacs-eclim meghanada org-super-agenda slime-company web-mode use-package treemacs-evil rjsx-mode racer pdf-tools pandoc-mode nasm-mode intero helm evil-nerd-commenter evil-leader elpy doom-themes company-web company-statistics company-irony common-lisp-snippets cargo)))
  '(pdf-cache-image-limit 15)
  '(pdf-cache-prefetch-delay 0.7)
  '(pdf-occur-global-minor-mode t)

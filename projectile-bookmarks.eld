@@ -1,1 +1,0 @@
-("~/.emacs.d/" "~/Org/" "~/pprojects/helm-org-wiki/" "~/pprojects/hydra-collection/" "~/pprojects/" "~/pprojects/evil-eunuch/" "~/Books/SourceCode/emacs/" "~/pprojects/book/" "~/.vim/plugged/vimtex/" "~/.vim/plugged/delimitmate/" "~/pprojects/RSMC/")

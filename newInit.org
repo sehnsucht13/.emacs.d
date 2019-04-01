@@ -45,7 +45,15 @@
       :ensure t)
 
     ;;Theme settings
-    (load-theme 'wombat t)
+    ;; (load-theme 'wombat t)
+
+  (use-package doom-themes
+    :ensure t
+    :config
+    (load-theme 'doom-molokai t)
+    (setq doom-themes-enable-bold t
+          doom-themes-enable-italic t)
+    (doom-themes-org-config))
 
   ;; Set hack as default font
   (set-default-font "Hack-11")
@@ -69,8 +77,8 @@
   ;;Column numbers(turned on only in prog modes)
   (add-hook 'prog-mode-hook 'column-number-mode)
 
-  ;; Relative line numbers, emacs26 >= only
-  (setq-default display-line-numbers 'relative)
+  ;; Relative line numbers, emacs26  only
+  ;;(setq-default display-line-numbers 'relative)
 
   ;;Visual Parentheses matching
   (show-paren-mode 1)
@@ -353,7 +361,7 @@
    (define-key package-menu-mode-map "x" 'package-menu-execute)
    (define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
   (define-key package-menu-mode-map (kbd "q") (lambda ()
-                                           (quit-window t)))
+                                           (kill-current-buffer)))
    (define-key package-menu-mode-map "/" 'evil-search-forward)
    (define-key package-menu-mode-map "?" 'evil-search-backward)
    (define-key package-menu-mode-map "n" 'evil-search-next)
@@ -436,20 +444,20 @@
 
       (use-package helm-projectile
         :ensure t 
-      :after (projectile)
-      :config
-      (helm-projectile-on)
-      (setq helm-projectile-fuzzy-match t)
-      ;; Master menu
-      (evil-leader/set-key "pp" 'helm-projectile)
-      ;; Switches to projects
-      (evil-leader/set-key "ps" 'helm-projectile-switch-project)
-      ;; Finds a file within project
-      (evil-leader/set-key "pf" 'helm-projectile-find-file)
-      ;; Finds a directory and opens it within project
-      (evil-leader/set-key "pd" 'helm-projectile-find-dir)
-      ;; Switches to a project buffer
-      (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer))
+        :after (projectile)
+        :config
+        (helm-projectile-on)
+        (setq helm-projectile-fuzzy-match t)
+        ;; Master menu
+        (evil-leader/set-key "pp" 'helm-projectile)
+        ;; Switches to projects
+        (evil-leader/set-key "ps" 'helm-projectile-switch-project)
+        ;; Finds a file within project
+        (evil-leader/set-key "pf" 'helm-projectile-find-file)
+        ;; Finds a directory and opens it within project
+        (evil-leader/set-key "pd" 'helm-projectile-find-dir)
+        ;; Switches to a project buffer
+        (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer))
 
 
 	#+END_SRC
@@ -833,15 +841,11 @@ Enable pandoc, deffered until called
     :ensure t
     :defer t
     :init
+    (require 'git-commit)
     (evil-leader/set-key "ms" 'magit-status)
     (evil-leader/set-key "mp" 'magit-push)
     (evil-leader/set-key "mc" 'magit-commit)
     (evil-leader/set-key "md" 'magit-pull))
-
-  (use-package magithub
-    :ensure t
-    :after (magit))
-
 #+END_SRC
 *** Calendar
 #+BEGIN_SRC emacs-lisp :tangle yes
@@ -977,25 +981,17 @@ Enable pandoc, deffered until called
 
   (use-package lsp-mode
     :ensure t
-    :hook (prog-mode-hook . lsp)
-    :commands lsp)
-
-    (use-package lsp-ui
-      :commands lsp-ui-mode
-      :ensure t
-      :config
-      (setq lsp-ui-sideline-ignore-duplicate t
-            lsp-ui-doc-max-height 20
-            lsp-ui-peek-always-show t
-            lsp-ui-doc-max-width 50))
+    :commands lsp
+    :config (add-hook 'prog-mode-hook #'lsp))
 
   ;; ;;frontend for completions
   (use-package company
     :ensure t
     :after (lsp-mode)
+    :hook (emacs-lisp-mode-hook . company-mode)
     :config
-    (setq company-idle-delay 0)
-    (setq company-minimum-prefix-length 1)
+    (setq company-idle-delay .2)
+    (setq company-minimum-prefix-length 2)
     (setq company-tooltip-align-annotations t)
     (setq company-show-numbers t)
 
@@ -1022,17 +1018,33 @@ Enable pandoc, deffered until called
     ;;   :ensure t
     ;;   :defer t)
 
-  ;;   ;; 
   ;; Keeps a file containing the most used completions
-  ;;   (use-package company-statistics ;;     :ensure t
-  ;;     :after (company))
+  (use-package company-statistics
+    :ensure t
+    :after (company))
+
+
+  (use-package company-c-headers
+    :ensure t
+    :after (company)
+    :config
+    (add-to-list 'company-backends 'company-c-headers))
+
+    (use-package lsp-ui
+      :ensure t
+      :commands (lsp-ui-mode)
+      :hook (lsp-mode . lsp-ui-mode)
+
+      :config
+      (setq lsp-ui-sideline-ignore-duplicate t
+            lsp-ui-doc-max-height 20
+            lsp-ui-peek-always-show t
+            lsp-ui-doc-max-width 50))
+
 
     ;; (use-package company-box
     ;;   :ensure t
     ;;   :hook (company-mode . company-box-mode))
-
-
-
 
 #+END_SRC
 *** Lisps
@@ -1095,17 +1107,17 @@ Enable pandoc, deffered until called
 *** Haskell
 	#+BEGIN_SRC emacs-lisp :tangle yes
 
-      ;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
-      (use-package haskell-snippets
-        :ensure t
-        :after (intero))
+      ;; ;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
+      ;; (use-package haskell-snippets
+      ;;   :ensure t
+      ;;   :after (intero))
 
-      (use-package intero
-        :ensure t
-        :init (add-hook 'haskell-mode-hook 'intero-mode)
-        :config
-        (yas-minor-mode)
-        (flycheck-mode))
+      ;; (use-package intero
+      ;;   :ensure t
+      ;;   :init (add-hook 'haskell-mode-hook 'intero-mode)
+      ;;   :config
+      ;;   (yas-minor-mode)
+      ;;   (flycheck-mode))
 
 	#+END_SRC
 *** Python
@@ -1122,9 +1134,16 @@ Enable pandoc, deffered until called
         :hook (python-mode . lsp)
         :config
         (setq lsp-python-ms-dir
-              (expand-file-name "~/python-language-server/output/bin/Release/"))
+              (expand-file-name "~/.vscode/extensions/ms-python.python-2019.1.0/languageServer.0.1.78"))
         (setq lsp-python-ms-executable
-              "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer"))
+              "~/.vscode/extensions/ms-python.python-2019.1.0/languageServer.0.1.78/Microsoft.Python.LanguageServer")
+        (yas-minor-mode)
+        (company-statistics-mode))
+
+        ;; (setq lsp-python-ms-dir
+        ;;       (expand-file-name "~/python-language-server/output/bin/Release"))
+        ;; (setq lsp-python-ms-executable
+        ;;       "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer"))
 
       (use-package py-autopep8
         :ensure t
@@ -1272,6 +1291,16 @@ Enable pandoc, deffered until called
     :defer t
     :ensure auctex) 
 
+#+END_SRC
+*** Golang
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package go-mode
+    :ensure t
+    :mode ("\\.go" . go-mode))
+
+  (use-package lsp-go
+    :ensure t
+    :hook (go-mode-hook . lsp-go-enable))
 #+END_SRC
 ** Other Config files
 [[file:~/.bashrc][Bash]]

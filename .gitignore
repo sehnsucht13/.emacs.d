@@ -10,6 +10,17 @@ magithub
 
 meghanada
 
-url
+url/
 
-thumbs
+thumbs/
+
+auto-save-list/
+emacs-libvterm/
+nov-places
+ido.last
+recentf
+tramp
+transient/
+texput.log
+#newInit.el#
+.cache/

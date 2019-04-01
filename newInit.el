@@ -35,7 +35,18 @@
     :ensure t)
 
   ;;Theme settings
-  (load-theme 'wombat t)
+  ;; (load-theme 'wombat t)
+
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-molokai t)
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+  (doom-themes-org-config))
+
+;; Set hack as default font
+(set-default-font "Hack-11")
 
 ;;Disable backup files
 (setq make-backup-files nil)
@@ -53,8 +64,8 @@
 ;;Column numbers(turned on only in prog modes)
 (add-hook 'prog-mode-hook 'column-number-mode)
 
-;; Relative line numbers, emacs26 >= only
-(setq-default display-line-numbers 'relative)
+;; Relative line numbers, emacs26  only
+;;(setq-default display-line-numbers 'relative)
 
 ;;Visual Parentheses matching
 (show-paren-mode 1)
@@ -73,9 +84,6 @@
 (defadvice ansi-term (before force-bash)
   (interactive (list my-term-shell)))
 (ad-activate 'ansi-term)
-
-;;Set the initial buffer to org todo list
-(setf initial-buffer-choice #'(lambda () (find-file "~/Org/Agenda.org")))
 
 (setq fill-column 80)
 
@@ -182,11 +190,16 @@
 ;;Enable evil mode everywhere. The initialization is deferred to let evil leader load first
 (use-package evil
   :ensure t
-  :after (evil-leader)
   :init
+  (setq evil-want-C-i-jump t)
+  (setq evil-want-C-d-scroll t)
   (setq evil-want-C-u-scroll t)
+  :after (evil-leader)
   :config
   (evil-mode 1))
+;; Make C-u work in normal and visual mode.
+(define-key evil-normal-state-map (kbd "C-u") 'evil-scroll-up)
+(define-key evil-visual-state-map (kbd "C-u") 'evil-scroll-up)
 
 ;;Resizing of windows. (C is the control key)
 (define-key evil-normal-state-map (kbd "<C-left>") 'evil-window-decrease-width)
@@ -199,15 +212,15 @@
 (evil-set-initial-state 'ansi-term 'insert)
 
 ;;Visual lines
-(define-key evil-normal-state-map (kbd "C-j") 'evil-next-visual-line)
-(define-key evil-normal-state-map (kbd "C-k") 'evil-previous-visual-line)
+(define-key evil-normal-state-map (kbd "M-j") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "M-k") 'evil-previous-visual-line)
 
 ;;Exit out of brackets while in insert mode
 (define-key evil-insert-state-map (kbd "C-a") 'exit-bracket)
 
 ;;Colorfull cursor depending on state
 (setq evil-emacs-state-cursor '("red" box))
-(setq evil-normal-state-cursor '("white" box))
+(setq evil-normal-state-cursor '("red" box))
 (setq evil-visual-state-cursor '("orange" box))
 (setq evil-insert-state-cursor '("white" bar))
 (setq evil-replace-state-cursor '("green" bar))
@@ -242,65 +255,55 @@
   (kill-buffer (buffer-name)))
 
 (defun exit-bracket ()
-"Exit out of the brackets and goes to the end of the line"
+"Exit out of the brackets and go to the end of the line."
 (interactive)
 (evil-normal-state 1)
 (evil-append-line 1))
 
 (defun start-external-shell ()
-"Start an external shell, whatever the default system shell is"
+"Start an external shell, whatever the default system shell is."
 (interactive)
 (start-process "shell-process" nil "xfce4-terminal"))
 
-(defun org-create-heading (headingSize)
-  (interactive "p")
-  (evil-normal-state 1)
-  (evil-open-below 1)
-  (insert (make-string headingSize ?*)))
-
-(defun start-which-key-for-mode ()
-  "Start which key and display the bindings for the current mode"
-  (interactive)
-  (which-key-mode)
-  (setq which-key-idle-delay 0)
-  (which-key-show-major-mode))
-
-
-(defun start-which-key-for-full-keymap ()
-  "Start which key and display the bindings for the full keymap available"
-  (interactive)
-  (which-key-mode)
-  (setq which-key-idle-delay 0)
-  (which-key-show-full-keymap))
-
-(defun stop-which-key-for-all ()
-  "Disable which key for the current buffer. Turns off the minor mode and resets the idle delay"
-  (interactive)
-  (which-key-mode nil)
-  (setq which-key-idle-delay 3.0))
-
 (defun make-my-bookmark ()
-  "Automatically creates a bookmark with the name Current + filename"
+  "Automatically create a bookmark with the name Current + filename."
   (interactive)
   (bookmark-set (buffer-name)))
+
+
+(defhydra hydra-manjaro-files ()
+  ("h" (helm-find-file-as-root "/etc/hosts") "Hosts File" :exit t)
+  ("i" (find-file "~/.config/i3/config") "I3 Config" :exit t)
+  ("b" (find-file "~/.bashrc") "Bash Config" :exit t)
+  ("f" (find-file "~/.emacs.d/elfeed.org") "Feeds" :exit t)
+  ("e" (find-file "~/.emacs.d/init.el") "Emacs Conf." :exit t))
+
+(defhydra hydra-personal ()
+  ("e" (run-elfeed) "Run Elfeed" :exit t)
+  ("a" (find-file "~/Org/Agenda.org") "Agenda" :exit t)
+  ("f" (hydra-manjaro-files/body) "Files" :exit t))
+
+;; Open up personal hydra
+(evil-leader/set-key "'" 'hydra-personal/body)
 
 (load-file "~/pprojects/helm-org-wiki/helm-org-wiki.el")
 
 (evil-leader/set-key  "ti" 'helm-org-wiki-open-index)
 (evil-leader/set-key "tw" 'helm-org-wiki-walk-wiki)
 (evil-leader/set-key "tn" 'helm-org-wiki-create-new-article)
+(evil-leader/set-key "tb" 'helm-org-wiki-open-reading-list)
 
-(evil-leader/set-key-for-mode 'org-mode "ih" 'wiki-haskell-block)
-(evil-leader/set-key-for-mode 'org-mode "ija" 'wiki-java-block)
-(evil-leader/set-key-for-mode 'org-mode "ijs" 'wiki-javascript-block)
-(evil-leader/set-key-for-mode 'org-mode "ip" 'wiki-python-block)
-(evil-leader/set-key-for-mode 'org-mode "ic" 'wiki-C-block)
-(evil-leader/set-key-for-mode 'org-mode "iv" 'wiki-C++-block)
-(evil-leader/set-key-for-mode 'org-mode "ir" 'wiki-rust-block)
-(evil-leader/set-key-for-mode 'org-mode "ie" 'wiki-emacs-lisp-block)
-(evil-leader/set-key-for-mode 'org-mode "ila" 'wiki-latex-block)
-(evil-leader/set-key-for-mode 'org-mode "ilp" 'wiki-lisp-block)
-(evil-leader/set-key-for-mode 'org-mode "is" 'wiki-sh-block)
+(evil-leader/set-key-for-mode 'org-mode "ih" 'helm-org-wiki-haskell-block)
+(evil-leader/set-key-for-mode 'org-mode "ija" 'helm-org-wiki-java-block)
+(evil-leader/set-key-for-mode 'org-mode "ijs" 'helm-org-wiki-javascript-block)
+(evil-leader/set-key-for-mode 'org-mode "ip" 'helm-org-wiki-python-block)
+(evil-leader/set-key-for-mode 'org-mode "ic" 'helm-org-wiki-C-block)
+(evil-leader/set-key-for-mode 'org-mode "iv" 'helm-org-wiki-C++-block)
+(evil-leader/set-key-for-mode 'org-mode "ir" 'helm-org-wiki-rust-block)
+(evil-leader/set-key-for-mode 'org-mode "ie" 'helm-org-wiki-emacs-lisp-block)
+(evil-leader/set-key-for-mode 'org-mode "ila" 'helm-org-wiki-latex-block)
+(evil-leader/set-key-for-mode 'org-mode "ilp" 'helm-org-wiki-lisp-block)
+(evil-leader/set-key-for-mode 'org-mode "is" 'helm-org-wiki-sh-block)
 
 ;; Set normal state
 (evil-set-initial-state 'help-mode 'normal)
@@ -322,7 +325,7 @@
  (define-key package-menu-mode-map "x" 'package-menu-execute)
  (define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
 (define-key package-menu-mode-map (kbd "q") (lambda ()
-                                         (quit-window t)))
+                                         (kill-current-buffer)))
  (define-key package-menu-mode-map "/" 'evil-search-forward)
  (define-key package-menu-mode-map "?" 'evil-search-backward)
  (define-key package-menu-mode-map "n" 'evil-search-next)
@@ -394,20 +397,20 @@
 
 (use-package helm-projectile
   :ensure t 
-:after (projectile)
-:config
-(helm-projectile-on)
-(setq helm-projectile-fuzzy-match t)
-;; Master menu
-(evil-leader/set-key "pp" 'helm-projectile)
-;; Switches to projects
-(evil-leader/set-key "ps" 'helm-projectile-switch-project)
-;; Finds a file within project
-(evil-leader/set-key "pf" 'helm-projectile-find-file)
-;; Finds a directory and opens it within project
-(evil-leader/set-key "pd" 'helm-projectile-find-dir)
-;; Switches to a project buffer
-(evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer))
+  :after (projectile)
+  :config
+  (helm-projectile-on)
+  (setq helm-projectile-fuzzy-match t)
+  ;; Master menu
+  (evil-leader/set-key "pp" 'helm-projectile)
+  ;; Switches to projects
+  (evil-leader/set-key "ps" 'helm-projectile-switch-project)
+  ;; Finds a file within project
+  (evil-leader/set-key "pf" 'helm-projectile-find-file)
+  ;; Finds a directory and opens it within project
+  (evil-leader/set-key "pd" 'helm-projectile-find-dir)
+  ;; Switches to a project buffer
+  (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer))
 
 (defun yav-go-up-org-heading ()
 "Go up to the parent heading and automatically close it"
@@ -466,7 +469,11 @@
           ("r" "Research/Read About" entry (file+headline "~/Wiki/ProjectIdeas/ToResearch.org" "To Find Out")
            "* RESEARCH %?" :kill-buffer t :prepend t)
           ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
-                                                   "* TODO %?" :kill-buffer t :prepend t)))
+           "* TODO %?" :kill-buffer t :prepend t)
+          ("f" "Books" entry (file+headline "~/Org/Agenda.org" "Current Reading List")
+           "** INSERT \n %(helm-org-wiki--get-org-link)")))
+
+
 
   ;; Do not split lines on a new todo
   (setq org-M-RET-may-split-line '((default . nil)))
@@ -610,10 +617,6 @@
   :config
   (add-hook 'dired-mode-hook 'org-download-enable))
 
-(use-package org-noter
-  :ensure t
-  :defer t)
-
 (use-package treemacs
 :ensure t
 :defer t
@@ -706,35 +709,35 @@
         (pdf-view-last-page)
         (image-eob)))
 
-(use-package pdf-tools
-  :ensure t
-    :mode ("\\.pdf\\'" . pdf-view-mode)
-    :config
-    (pdf-tools-install)
-    (setq pdf-view-continuous t)
-    (setq pdf-view-display-size 'fit-width)
-    (evil-set-initial-state 'pdf-view-mode 'normal)
-    (evil-define-key 'normal pdf-view-mode-map (kbd "j") 'evil-collection-pdf-view-next-line-or-next-page
-      (kbd "k") 'evil-collection-pdf-view-previous-line-or-previous-page
-      (kbd "J") 'pdf-view-next-page
-      (kbd "K") 'pdf-view-previous-page
-      (kbd "i") 'pdf-outline
-      (kbd "q") 'bury-buffer
-      (kbd "Q") 'kill-current-buffer
-      (kbd "gg") 'pdf-view-first-page
-      (kbd "G") 'evil-collection-pdf-view-goto-page))
+;; (use-package pdf-tools
+;;   :ensure t
+;;     :mode ("\\.pdf\\'" . pdf-view-mode)
+;;     :config
+;;     (pdf-tools-install)
+;;     (setq pdf-view-continuous t)
+;;     (setq pdf-view-display-size 'fit-width)
+;;     (evil-set-initial-state 'pdf-view-mode 'normal)
+;;     (evil-define-key 'normal pdf-view-mode-map (kbd "j") 'evil-collection-pdf-view-next-line-or-next-page
+;;       (kbd "k") 'evil-collection-pdf-view-previous-line-or-previous-page
+;;       (kbd "J") 'pdf-view-next-page
+;;       (kbd "K") 'pdf-view-previous-page
+;;       (kbd "i") 'pdf-outline
+;;       (kbd "q") 'bury-buffer
+;;       (kbd "Q") 'kill-current-buffer
+;;       (kbd "gg") 'pdf-view-first-page
+;;       (kbd "G") 'evil-collection-pdf-view-goto-page))
 
 
-(setq doc-view-continuous t)
-(evil-set-initial-state 'doc-view-mode 'normal)
-      (evil-define-key 'normal doc-view-mode-map (kbd "j") 'doc-view-next-line-or-next-page
-        (kbd "k") 'doc-view-previous-line-or-previous-page
-        (kbd "J") 'doc-view-next-page
-        (kbd "K") 'doc-view-previous-page
-        (kbd "q") 'bury-buffer
-        (kbd "Q") 'kill-current-buffer
-        (kbd "gg") 'doc-view-first-page
-        (kbd "G") 'doc-view-last-page)
+;; (setq doc-view-continuous t)
+;; (evil-set-initial-state 'doc-view-mode 'normal)
+;;       (evil-define-key 'normal doc-view-mode-map (kbd "j") 'doc-view-next-line-or-next-page
+;;         (kbd "k") 'doc-view-previous-line-or-previous-page
+;;         (kbd "J") 'doc-view-next-page
+;;         (kbd "K") 'doc-view-previous-page
+;;         (kbd "q") 'bury-buffer
+;;         (kbd "Q") 'kill-current-buffer
+;;         (kbd "gg") 'doc-view-first-page
+;;         (kbd "G") 'doc-view-last-page)
 
 (use-package pandoc-mode
   :ensure t
@@ -760,14 +763,11 @@
   :ensure t
   :defer t
   :init
+  (require 'git-commit)
   (evil-leader/set-key "ms" 'magit-status)
   (evil-leader/set-key "mp" 'magit-push)
   (evil-leader/set-key "mc" 'magit-commit)
   (evil-leader/set-key "md" 'magit-pull))
-
-(use-package magithub
-  :ensure t
-  :after (magit))
 
 ;;Bindings for the emacs calendar. Used often with deadlines and overall agenda related tasks
 (define-key calendar-mode-map "j" 'calendar-forward-day)
@@ -864,11 +864,12 @@
   (setq rmh-elfeed-org-files (list"~/.emacs.d/elfeed.org")))
 
 (defhydra yk/hydra-elfeed ()
-  "filter . take 1"
-  ("e" (elfeed-search-set-filter "@1-week-ago +emacs +unread") "Emacs")
+  ("q" (quit-window) "Quit")
+  ("e" (elfeed-search-set-filter "@3-days-ago +emacs +unread") "Emacs")
   ("n" (elfeed-search-set-filter "@3-days-ago +news +unread") "News")
-  ("t" (elfeed-search-set-filter "@1-week-ago +tech +unread") "Tech")
-  ("f" (elfeed-search-fetch) "Refresh"))
+  ("t" (elfeed-search-set-filter "@3-days-ago +tech +unread") "Tech")
+  ("r" (elfeed-search-set-filter "@3-days-ago +reddit +unread") "Reddit")
+  ("f" (elfeed-search-fetch-visible) "Refresh"))
 
 (defun run-elfeed-hydra ()
   (interactive)
@@ -881,55 +882,72 @@
   (elfeed)
   (elfeed-update))
 
-;;Display tooltips for functions. Only activated in emacs lisp mode
-(use-package company-quickhelp
+(use-package lsp-mode
   :ensure t
-  :defer t)
+  :commands lsp
+  :config (add-hook 'prog-mode-hook #'lsp))
 
 ;; ;;frontend for completions
 (use-package company
-            :ensure t
-            :config
-            (setq company-idle-delay 0)
-            (setq company-minimum-prefix-length 2)
-            (setq company-tooltip-align-annotations t)
-            (setq company-show-numbers t)
-
-            ;;Keybindings for company selections
-            (define-key company-active-map (kbd "M-n") nil)
-            (define-key company-active-map (kbd "M-p") nil)
-            (define-key company-active-map (kbd "C-j") 'company-select-next)
-            (define-key company-active-map (kbd "C-k") 'company-select-previous)
-            (define-key company-active-map [tab] 'company-complete-common-or-cycle)
-            (define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle))
-
-
-;;Keeps a file containing the most used completions
-(use-package company-statistics
-:ensure t
-:after (company))
-
-(use-package lsp-mode
   :ensure t
-  :init
-  (add-hook 'c-mode-hook 'lsp-mode))
+  :after (lsp-mode)
+  :hook (emacs-lisp-mode-hook . company-mode)
+  :config
+  (setq company-idle-delay .2)
+  (setq company-minimum-prefix-length 2)
+  (setq company-tooltip-align-annotations t)
+  (setq company-show-numbers t)
+
+  ;;Keybindings for company selections
+  (define-key company-active-map (kbd "M-n") nil)
+  (define-key company-active-map (kbd "M-p") nil)
+  (define-key company-active-map (kbd "C-j") 'company-select-next)
+  (define-key company-active-map (kbd "C-k") 'company-select-previous)
+  (define-key company-active-map [tab] 'company-complete-common-or-cycle)
+  (define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle))
 
 ;;This company backend is used for language servers
 (use-package company-lsp
-  :ensure t
-  :after (lsp-mode)
-  :config
-  (push 'company-lsp company-backends)
-  (setq company-lsp-cache-candidates 'auto)
-  (setq company-lsp-async t)
-  (setq company-lsp-enable-recompletion t))
+    :commands company-lsp
+    :ensure t
+    :config
+    (push 'company-lsp company-backends)
+    (setq company-lsp-cache-candidates 'auto)
+    (setq company-lsp-async t)
+    (setq company-lsp-enable-snippet t))
 
-(use-package lsp-ui
+  ;; ;;Display tooltips for functions. Only activated in emacs lisp mode
+  ;; (use-package company-quickhelp
+  ;;   :ensure t
+  ;;   :defer t)
+
+;; Keeps a file containing the most used completions
+(use-package company-statistics
   :ensure t
-  :init
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-  (add-hook 'c-mode-hook 'flycheck-mode)
-  (add-hook 'c++-mode-hook 'flycheck-mode))
+  :after (company))
+
+
+(use-package company-c-headers
+  :ensure t
+  :after (company)
+  :config
+  (add-to-list 'company-backends 'company-c-headers))
+
+  (use-package lsp-ui
+    :ensure t
+    :commands (lsp-ui-mode)
+    :hook (lsp-mode . lsp-ui-mode)
+
+    :config
+    (setq lsp-ui-sideline-ignore-duplicate t
+          lsp-ui-doc-max-height 20
+          lsp-ui-peek-always-show t
+          lsp-ui-doc-max-width 50))
+
+
+  ;; (use-package company-box
+  ;;   :ensure t
+  ;;   :hook (company-mode . company-box-mode))
 
 ;;Activate company mode in lisp mode
 (use-package slime-company
@@ -980,100 +998,111 @@
 :ensure t
 :defer t)
 
-;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
-(use-package haskell-snippets
-  :ensure t
-  :after (intero))
+;; ;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
+;; (use-package haskell-snippets
+;;   :ensure t
+;;   :after (intero))
 
-(use-package intero
-  :ensure t
-  :defer t
-  :init (add-hook 'haskell-mode-hook 'intero-mode)
-  :config
-  (yas-minor-mode)
-  (flycheck-mode))
+;; (use-package intero
+;;   :ensure t
+;;   :init (add-hook 'haskell-mode-hook 'intero-mode)
+;;   :config
+;;   (yas-minor-mode)
+;;   (flycheck-mode))
 
 ;;Default emacs python mode, set up a hook for it to enable elpy
 (use-package python
   :ensure t
-  :mode ("\\.py" . python-mode)
+  :mode ("\\.py" . python-mode))
+
+(use-package lsp-python-ms
+  :ensure nil
+  :demand t
+  :load-path "~/.emacs.d/elpa/lsp-python-ms"
+  :hook (python-mode . lsp)
   :config
-  (add-hook 'python-mode-hook 'elpy-mode))
+  (setq lsp-python-ms-dir
+        (expand-file-name "~/.vscode/extensions/ms-python.python-2019.1.0/languageServer.0.1.78"))
+  (setq lsp-python-ms-executable
+        "~/.vscode/extensions/ms-python.python-2019.1.0/languageServer.0.1.78/Microsoft.Python.LanguageServer")
+  (yas-minor-mode)
+  (company-statistics-mode))
+
+  ;; (setq lsp-python-ms-dir
+  ;;       (expand-file-name "~/python-language-server/output/bin/Release"))
+  ;; (setq lsp-python-ms-executable
+  ;;       "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer"))
 
 (use-package py-autopep8
   :ensure t
-  :defer t)
+  :hook (python-mode . py-autopep8-enable-on-save))
 
-(use-package elpy
-  :ensure t
-  :defer t
-  :config
-  ;;Use standard python interpreter to run files
-  (setq python-shell-interpreter "python"
-        python-shell-interpreter-args "-i")
-  ;; use flycheck instead of flymake
-  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-  (add-hook 'elpy-mode-hook 'flycheck-mode)
-  (yas-minor-mode)
-  (company-statistics-mode)
-  (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
 
-(use-package basic-c-compile
-  :ensure t
-  :defer t)
-
-(use-package company-irony-c-headers
-  :ensure t
-  :after (company-irony)
-  :config
-  (add-to-list 'company-backends 'company-irony-c-headers))
-
-(use-package company-irony
-            :ensure t
-            :config
-            (require 'company)
-            (setq company-irony-ignore-case 'smart)
-            (add-to-list 'company-backends 'company-irony))
-
-(use-package irony
-            :ensure t
-            :config
-            (add-hook 'c-mode-hook 'irony-mode)
-            (add-hook 'c++-mode-hook 'irony-mode)
-            (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
-            (evil-leader/set-key-for-mode 'c-mode "dp" 'irony-parse-buffer)
-            (evil-leader/set-key-for-mode 'c++-mode "dp" 'irony-parse-buffer))
-
-(add-hook 'c-mode-hook (lambda ()
-                (company-mode)
-                (yas-minor-mode)
-                (company-statistics-mode)
-                (flycheck-mode)))
-
-(add-hook 'c++-mode-hook (lambda ()
-                (company-mode)
-                (yas-minor-mode)
-                (company-statistics-mode)
-                (flycheck-mode)))
-
-(defun irony-parse-buffer ()
-  "Parses the current buffer for irony mode to provide completions"
-  (interactive)
-  (irony--run-task-asynchronously (irony--parse-task)
-                                  (lambda (result))))
-
-;; (defun enable-my-cquery ()
-;;   (condition-case nil
-;;       (lsp-cquery-enable)
-;;     (user-error nil)))
-
-;; (use-package cquery
+;; (use-package elpy
 ;;   :ensure t
-;;   :commands lsp-cquery-enable
-;;   :init (add-hook 'c-mode-common-hook #'enable-my-cquery)
+;;   :defer t
 ;;   :config
-;;   (setq cquery-executable "/usr/bin/cquery")
-;; (setq cquery-extra-init-params '(:index (:comments 2) :cacheFormat "msgpack" :completion (:detailedLabel t))))
+;;   ;;Use standard python interpreter to run files
+;;   (setq python-shell-interpreter "python"
+;;         python-shell-interpreter-args "-i")
+;;   ;; use flycheck instead of flymake
+;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;   (add-hook 'elpy-mode-hook 'flycheck-mode)
+;;   (yas-minor-mode)
+;;   (company-statistics-mode)
+;;   (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
+
+;; (use-package basic-c-compile
+;;   :ensure t
+;;   :defer t)
+
+;; (use-package company-irony-c-headers
+;;   :ensure t
+;;   :after (company-irony)
+;;   :config
+;;   (add-to-list 'company-backends 'company-irony-c-headers))
+
+;; (use-package company-irony
+;;             :ensure t
+;;             :config
+;;             (require 'company)
+;;             (setq company-irony-ignore-case 'smart)
+;;             (add-to-list 'company-backends 'company-irony))
+
+;; (use-package irony
+;;             :ensure t
+;;             :config
+;;             (add-hook 'c-mode-hook 'irony-mode)
+;;             (add-hook 'c++-mode-hook 'irony-mode)
+;;             (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+;;             (evil-leader/set-key-for-mode 'c-mode "dp" 'irony-parse-buffer)
+;;             (evil-leader/set-key-for-mode 'c++-mode "dp" 'irony-parse-buffer))
+
+;; (add-hook 'c-mode-hook (lambda ()
+;;                 (company-mode)
+;;                 (yas-minor-mode)
+;;                 (company-statistics-mode)
+;;                 (flycheck-mode)))
+
+;; (add-hook 'c++-mode-hook (lambda ()
+;;                 (company-mode)
+;;                 (yas-minor-mode)
+;;                 (company-statistics-mode)
+;;                 (flycheck-mode)))
+
+;; (defun irony-parse-buffer ()
+;;   "Parses the current buffer for irony mode to provide completions"
+;;   (interactive)
+;;   (irony--run-task-asynchronously (irony--parse-task)
+;;                                   (lambda (result))))
+
+(use-package ccls
+  :ensure t
+  :config (setq ccls-executable "/usr/bin/ccls")
+  :hook (c-mode .
+         (lambda ()
+           (require 'ccls)
+           (lsp))))
 
 (use-package js2-mode
   :ensure t
@@ -1122,3 +1151,11 @@
 (use-package tex
   :defer t
   :ensure auctex)
+
+(use-package go-mode
+  :ensure t
+  :mode ("\\.go" . go-mode))
+
+(use-package lsp-go
+  :ensure t
+  :hook (go-mode-hook . lsp-go-enable))
