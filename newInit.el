@@ -18,36 +18,6 @@
 ;;Returns it to normal afterwards
 (add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
 
-;;Remove some of the default tool bars and scroll bars   
-  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
-
-  ;; Remove splash screen and startup message
-  (setq inhibit-splash-screen t
-        inhibit-startup-echo-area-message t)
-
-  ;;Smooth scrolling
-  (setq scroll-conservatively 100)
-
-  ;;Install theme package
-  (use-package monokai-theme
-    :ensure t)
-
-  ;;Theme settings
-  ;; (load-theme 'wombat t)
-
-(use-package doom-themes
-  :ensure t
-  :config
-  (load-theme 'doom-molokai t)
-  (setq doom-themes-enable-bold t
-        doom-themes-enable-italic t)
-  (doom-themes-org-config))
-
-;; Set hack as default font
-(set-default-font "Hack-11")
-
 ;;Disable backup files
 (setq make-backup-files nil)
 (setq backup-inhibited t)
@@ -65,7 +35,7 @@
 (add-hook 'prog-mode-hook 'column-number-mode)
 
 ;; Relative line numbers, emacs26  only
-;;(setq-default display-line-numbers 'relative)
+(setq-default display-line-numbers 'relative)
 
 ;;Visual Parentheses matching
 (show-paren-mode 1)
@@ -103,7 +73,10 @@
 (setq help-window-select t)
 
 ;;Set initial buffer mode to text mode.
-(setq initial-major-mode 'fundamental-mode)
+(setq initial-major-mode 'emacs-lisp-mode)
+
+;; Set hack as default font
+(set-frame-font "Hack 11")
 
 ;;Evil leader setup
 (use-package evil-leader
@@ -424,7 +397,7 @@
 (evil-leader/set-key "oc" 'org-capture)
 
 ;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "WAITING(w)" "CURRENT(f)" "NEXT(n)"  "|" "DONE(d)" "CANCELLED(c)")))
+(setq org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "HACK(h)" "WAITING(w)" "CURRENT(f)" "NEXT(n)"  "|" "DONE(d)" "CANCELLED(c)")))
 
 ;;Org capture file
 (setq org-default-notes-file "~/Org/OrgCaptures.org")
@@ -504,6 +477,7 @@
      (js . t)
      (haskell . t)
      (emacs-lisp . t)
+     (scheme . t)
      (lisp . t)))
 
 
@@ -559,7 +533,8 @@
   :config
   (org-super-agenda-mode)
   (setq org-super-agenda-groups
-          '((:name "Today" :todo "TODO")
+        '((:name "Today" :todo "TODO")
+          (:name "Hack Todo" :todo "HACK")
             (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
             (:name "Maybe" :todo "MAYBE"))))
 
@@ -575,7 +550,9 @@
   (setq org-journal-carryover-items nil)
   (setq org-journal-dir "~/Org/Others/Journal")
   (setq org-journal-find-file 'find-file)
+
   (evil-leader/set-key "]t" 'org-journal-new-entry)
+  (add-hook 'org-journal-after-entry-create-hook 'org-journal-mode)
   (evil-leader/set-key-for-mode 'org-journal-mode "dj" 'org-journal-next-entry)
   (evil-leader/set-key-for-mode 'org-journal-mode "dk" 'org-journal-previous-entry)
   (evil-leader/set-key-for-mode 'org-journal-mode "ds" 'org-journal-search)
@@ -884,16 +861,22 @@
 
 (use-package lsp-mode
   :ensure t
-  :commands lsp
-  :config (add-hook 'prog-mode-hook #'lsp))
+  :commands (lsp)
+  :config
+  (add-hook 'c-mode-hook #'lsp)
+  (setq lsp-prefer-flymake nil)
+  (add-hook 'c++-mode-hook #'lsp)
+
+  (setq lsp-enable-snippet t)
+  (setq lsp-enable-xref t)
+  (setq lsp-enable-folding t)
+  (setq lsp-enable-indentation t))
 
 ;; ;;frontend for completions
 (use-package company
   :ensure t
-  :after (lsp-mode)
-  :hook (emacs-lisp-mode-hook . company-mode)
   :config
-  (setq company-idle-delay .2)
+  (setq company-idle-delay .1)
   (setq company-minimum-prefix-length 2)
   (setq company-tooltip-align-annotations t)
   (setq company-show-numbers t)
@@ -912,42 +895,42 @@
     :ensure t
     :config
     (push 'company-lsp company-backends)
-    (setq company-lsp-cache-candidates 'auto)
-    (setq company-lsp-async t)
-    (setq company-lsp-enable-snippet t))
+    (setq
+     company-lsp-cache-candidates 'auto
+     company-lsp-async t
+     company-lsp-enable-snippet t
+     company-lsp-enable-recompletion t))
 
-  ;; ;;Display tooltips for functions. Only activated in emacs lisp mode
-  ;; (use-package company-quickhelp
-  ;;   :ensure t
-  ;;   :defer t)
 
 ;; Keeps a file containing the most used completions
 (use-package company-statistics
   :ensure t
-  :after (company))
+  :after (company-lsp))
 
 
 (use-package company-c-headers
   :ensure t
-  :after (company)
+  :after (company-lsp)
   :config
   (add-to-list 'company-backends 'company-c-headers))
 
   (use-package lsp-ui
     :ensure t
     :commands (lsp-ui-mode)
-    :hook (lsp-mode . lsp-ui-mode)
-
     :config
     (setq lsp-ui-sideline-ignore-duplicate t
           lsp-ui-doc-max-height 20
           lsp-ui-peek-always-show t
+          lsp-ui-doc-mode nil
           lsp-ui-doc-max-width 50))
 
+(use-package geiser
+  :ensure t
+  :after (scheme-mode)
+  :hook
+  (add-hook 'geiser-mode-hook 'rainbow-delimiters-mode))
 
-  ;; (use-package company-box
-  ;;   :ensure t
-  ;;   :hook (company-mode . company-box-mode))
+(add-hook 'scheme-mode-hook 'run-geiser)
 
 ;;Activate company mode in lisp mode
 (use-package slime-company
@@ -967,36 +950,21 @@
 :defer t)
 
 ;;Elisp hook for auto complete
-(add-hook 'emacs-lisp-mode-hook 'company-mode)
+(add-hook 'emacs-lisp-mode-hook (lambda ()
+                                  (company-mode)
+                                  (rainbow-delimiters-mode)))
+
 
 ;;Hook for common lisp. Starts up the REPL
 (add-hook 'lisp-mode-hook #'(lambda ()
-				(company-mode)
-				(slime)
-				(require 'common-lisp-snippets)
-				(company-statistics-mode)
-				(yas-minor-mode)))
+                (company-mode)
+                (slime)
+                (require 'common-lisp-snippets)
+                (company-statistics-mode)
+                (yas-minor-mode)))
 
-(setq racer-cmd "~/.cargo/bin/racer")
-;; (setq racer-rust-src-path "~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src")
-(use-package rust-mode
-:ensure t
-:mode ("\\.rs\\'" . rust-mode)
-:config
-(add-hook 'rust-mode-hook 'cargo-minor-mode)
-(add-hook 'rust-mode-hook 'racer-mode)
-(add-hook 'racer-mode-hook 'eldoc-mode)
-(add-hook 'racer-mode-hook 'company-mode)
-(setq rust-format-on-save t)
-(company-statistics-mode))
-
-(use-package cargo
-:ensure t
-:defer t)
-
-(use-package racer
-:ensure t
-:defer t)
+(use-package rustic
+  :ensure t)
 
 ;; ;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
 ;; (use-package haskell-snippets
@@ -1016,41 +984,21 @@
   :mode ("\\.py" . python-mode))
 
 (use-package lsp-python-ms
-  :ensure nil
+  :ensure t
   :demand t
-  :load-path "~/.emacs.d/elpa/lsp-python-ms"
   :hook (python-mode . lsp)
   :config
   (setq lsp-python-ms-dir
-        (expand-file-name "~/.vscode/extensions/ms-python.python-2019.1.0/languageServer.0.1.78"))
+        (expand-file-name "~/python-language-server/output/bin/Release"))
   (setq lsp-python-ms-executable
-        "~/.vscode/extensions/ms-python.python-2019.1.0/languageServer.0.1.78/Microsoft.Python.LanguageServer")
-  (yas-minor-mode)
-  (company-statistics-mode))
-
-  ;; (setq lsp-python-ms-dir
-  ;;       (expand-file-name "~/python-language-server/output/bin/Release"))
+        "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer")
   ;; (setq lsp-python-ms-executable
-  ;;       "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer"))
+  ;;       "~/.vscode/extensions/ms-python.python-2019.4.11987/languageServer.0.2.63/Microsoft.Python.LanguageServer")
+  (yas-minor-mode))
 
-(use-package py-autopep8
+ (use-package py-autopep8
   :ensure t
   :hook (python-mode . py-autopep8-enable-on-save))
-
-
-;; (use-package elpy
-;;   :ensure t
-;;   :defer t
-;;   :config
-;;   ;;Use standard python interpreter to run files
-;;   (setq python-shell-interpreter "python"
-;;         python-shell-interpreter-args "-i")
-;;   ;; use flycheck instead of flymake
-;;   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-;;   (add-hook 'elpy-mode-hook 'flycheck-mode)
-;;   (yas-minor-mode)
-;;   (company-statistics-mode)
-;;   (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save))
 
 ;; (use-package basic-c-compile
 ;;   :ensure t
@@ -1098,11 +1046,17 @@
 
 (use-package ccls
   :ensure t
-  :config (setq ccls-executable "/usr/bin/ccls")
-  :hook (c-mode .
-         (lambda ()
-           (require 'ccls)
-           (lsp))))
+  :config (setq ccls-executable "/usr/bin/ccls"))
+
+(add-hook 'c-mode-hook (lambda ()
+                         (require 'ccls)
+                         (lsp)
+                         (company-statistics-mode)))
+
+(add-hook 'c++-mode-hook (lambda ()
+                           (require 'ccls)
+                           (lsp)
+                           (company-statistics-mode)))
 
 (use-package js2-mode
   :ensure t
@@ -1156,6 +1110,49 @@
   :ensure t
   :mode ("\\.go" . go-mode))
 
-(use-package lsp-go
+;;Remove some of the default tool bars and scroll bars   
+  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+
+  ;; Remove splash screen and startup message
+  (setq inhibit-splash-screen t
+        inhibit-startup-echo-area-message t)
+
+
+  ;;Smooth scrolling
+  (setq scroll-conservatively 100)
+
+  ;;Install theme package
+  (use-package monokai-theme
+    :ensure t)
+
+ (use-package spacemacs-theme
+   :ensure t
+   :defer t)
+
+(use-package doom-themes
   :ensure t
-  :hook (go-mode-hook . lsp-go-enable))
+  :config
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+  (doom-themes-org-config)
+  (doom-themes-visual-bell-config))
+
+  ;;Theme settings
+  (load-theme 'doom-molokai t)
+
+(use-package all-the-icons
+  :ensure t)
+
+(use-package doom-modeline
+      :ensure t
+      :hook (after-init . doom-modeline-mode)
+      :config
+      (setq
+       doom-modeline-icon t
+       doom-modeline-minor-modes nil
+       doom-modeline-lsp t
+       doom-modeline-buffer-modification-icon t
+       doom-modeline-major-mode-icon t
+       doom-modeline-buffer-file-name-style 'file-name))
