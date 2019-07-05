@@ -28,8 +28,8 @@
 (setq auto-encryption-mode nil)
 
 ;;Disable tooltips
-(setq x-gtk-use-system-tooltips nil)
-(setq tooltip-mode nil)
+(setq x-gtk-use-system-tooltips t)
+(setq tooltip-mode t)
 
 ;;Column numbers(turned on only in prog modes)
 (add-hook 'prog-mode-hook 'column-number-mode)
@@ -45,6 +45,8 @@
 
 ;;Tab width
 (setq-default tab-width 4)
+;; Do not use tabs
+(setq-default indent-tabs-mode nil)
 
 ;;Require y or n instead of full yes or no for destructive commands
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -55,7 +57,10 @@
   (interactive (list my-term-shell)))
 (ad-activate 'ansi-term)
 
-(setq fill-column 80)
+;; line break at 80 chars
+(setq-default fill-column 80)
+;; Wrap at 80
+(turn-on-auto-fill)
 
 ;; Visual indicators for wrap lines
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
@@ -76,7 +81,8 @@
 (setq initial-major-mode 'emacs-lisp-mode)
 
 ;; Set hack as default font
-(set-frame-font "Hack 11")
+(set-frame-font "Hack 11" nil t)
+(add-to-list 'default-frame-alist '(font . "Hack 11"))
 
 ;;Evil leader setup
 (use-package evil-leader
@@ -208,101 +214,19 @@
 (define-key minibuffer-local-must-match-map [escape] 'keyboard-escape-quit)
 (define-key minibuffer-local-isearch-map [escape] 'keyboard-quit)
 
-(defun minibuffer-increase-threshold ()
-  "Small function I stole from somebodys init. Used for entering the minibuffers for autocomplete/fuzzy searching and simply increases the threshold"
-  (setq gc-cons-threshold most-positive-fixnum))
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1))
 
-(defun minibuffer-normal-threshold ()
-  "Another small function i stole. Instead of increasing the gc threshold, it brings it to normal(that is 800 KB)"
-  (setq gc-cons-threshold 1000000))
+(use-package evil-matchit
+  :ensure t
+  :config
+  (global-evil-matchit-mode 1))
 
-(defun open-init-file ()
-"Open the init file written in org"
-(interactive)
-(find-file "~/.emacs.d/newInit.org"))
-
-(defun eval-new-init-file ()
-  "Evaluates the init.el file and then closes it. Used to update config after changing anything in org-mode based init file"
-  (interactive)
-  (eval-buffer (find-file user-init-file))
-  (kill-buffer (buffer-name)))
-
-(defun exit-bracket ()
-"Exit out of the brackets and go to the end of the line."
-(interactive)
-(evil-normal-state 1)
-(evil-append-line 1))
-
-(defun start-external-shell ()
-"Start an external shell, whatever the default system shell is."
-(interactive)
-(start-process "shell-process" nil "xfce4-terminal"))
-
-(defun make-my-bookmark ()
-  "Automatically create a bookmark with the name Current + filename."
-  (interactive)
-  (bookmark-set (buffer-name)))
-
-
-(defhydra hydra-manjaro-files ()
-  ("h" (helm-find-file-as-root "/etc/hosts") "Hosts File" :exit t)
-  ("i" (find-file "~/.config/i3/config") "I3 Config" :exit t)
-  ("b" (find-file "~/.bashrc") "Bash Config" :exit t)
-  ("f" (find-file "~/.emacs.d/elfeed.org") "Feeds" :exit t)
-  ("e" (find-file "~/.emacs.d/init.el") "Emacs Conf." :exit t))
-
-(defhydra hydra-personal ()
-  ("e" (run-elfeed) "Run Elfeed" :exit t)
-  ("a" (find-file "~/Org/Agenda.org") "Agenda" :exit t)
-  ("f" (hydra-manjaro-files/body) "Files" :exit t))
-
-;; Open up personal hydra
-(evil-leader/set-key "'" 'hydra-personal/body)
-
-(load-file "~/pprojects/helm-org-wiki/helm-org-wiki.el")
-
-(evil-leader/set-key  "ti" 'helm-org-wiki-open-index)
-(evil-leader/set-key "tw" 'helm-org-wiki-walk-wiki)
-(evil-leader/set-key "tn" 'helm-org-wiki-create-new-article)
-(evil-leader/set-key "tb" 'helm-org-wiki-open-reading-list)
-
-(evil-leader/set-key-for-mode 'org-mode "ih" 'helm-org-wiki-haskell-block)
-(evil-leader/set-key-for-mode 'org-mode "ija" 'helm-org-wiki-java-block)
-(evil-leader/set-key-for-mode 'org-mode "ijs" 'helm-org-wiki-javascript-block)
-(evil-leader/set-key-for-mode 'org-mode "ip" 'helm-org-wiki-python-block)
-(evil-leader/set-key-for-mode 'org-mode "ic" 'helm-org-wiki-C-block)
-(evil-leader/set-key-for-mode 'org-mode "iv" 'helm-org-wiki-C++-block)
-(evil-leader/set-key-for-mode 'org-mode "ir" 'helm-org-wiki-rust-block)
-(evil-leader/set-key-for-mode 'org-mode "ie" 'helm-org-wiki-emacs-lisp-block)
-(evil-leader/set-key-for-mode 'org-mode "ila" 'helm-org-wiki-latex-block)
-(evil-leader/set-key-for-mode 'org-mode "ilp" 'helm-org-wiki-lisp-block)
-(evil-leader/set-key-for-mode 'org-mode "is" 'helm-org-wiki-sh-block)
-
-;; Set normal state
-(evil-set-initial-state 'help-mode 'normal)
-
-;; Rebind q to quit
-(evil-define-key 'normal help-mode-map (kbd "q") (lambda ()
-                                                (interactive)
-                                                   (quit-window t)))
-;; Skip around buttons
-(evil-define-key 'normal help-mode-map (kbd "TAB") (lambda ()
-                                                     (interactive)
-                                                     (forward-button 1 t t)))
-
-;; For package manager
- (define-key package-menu-mode-map (kbd "j") 'next-line)
- (define-key package-menu-mode-map (kbd "k") 'previous-line)
- (define-key package-menu-mode-map (kbd "l") 'package-menu-describe-package)
- (define-key package-menu-mode-map "i" 'package-menu-mark-install)
- (define-key package-menu-mode-map "x" 'package-menu-execute)
- (define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
-(define-key package-menu-mode-map (kbd "q") (lambda ()
-                                         (kill-current-buffer)))
- (define-key package-menu-mode-map "/" 'evil-search-forward)
- (define-key package-menu-mode-map "?" 'evil-search-backward)
- (define-key package-menu-mode-map "n" 'evil-search-next)
- (define-key package-menu-mode-map "N" 'evil-search-previous)
+(use-package hydra
+:ensure t
+)
 
 (use-package helm
       :ensure t
@@ -347,10 +271,80 @@
 
 )
 
+(defun minibuffer-increase-threshold ()
+  "Small function I stole from somebodys init. Used for entering the minibuffers for autocomplete/fuzzy searching and simply increases the threshold"
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun minibuffer-normal-threshold ()
+  "Another small function i stole. Instead of increasing the gc threshold, it brings it to normal(that is 800 KB)"
+  (setq gc-cons-threshold 1000000))
+
+(defun open-init-file ()
+"Open the init file written in org"
+(interactive)
+(find-file "~/.emacs.d/newInit.org"))
+
+(defun eval-new-init-file ()
+  "Evaluates the init.el file and then closes it. Used to update config after changing anything in org-mode based init file"
+  (interactive)
+  (eval-buffer (find-file user-init-file))
+  (kill-buffer (buffer-name)))
+
+(defun exit-bracket ()
+"Exit out of the brackets and go to the end of the line."
+(interactive)
+(evil-normal-state 1)
+(evil-append-line 1))
+
+(defun start-external-shell ()
+"Start an external shell, whatever the default system shell is."
+(interactive)
+(start-process "shell-process" nil "xfce4-terminal"))
+
+(defun make-my-bookmark ()
+  "Automatically create a bookmark with the name Current + filename."
+  (interactive)
+  (bookmark-set (buffer-name)))
+
+
+(defhydra hydra-manjaro-files ()
+  ("h" (helm-find-file-as-root "/etc/hosts") "Hosts File" :exit t)
+  ("i" (find-file "~/.config/i3/config") "I3 Config" :exit t)
+  ("b" (find-file "~/.bashrc") "Bash Config" :exit t)
+  ("f" (find-file "~/.emacs.d/elfeed.org") "Feeds" :exit t))
+
+(defhydra hydra-personal ()
+  ("n" (run-elfeed) "News" :exit t)
+  ("e" (find-file "~/.emacs.d/newInit.org") "Emacs init" :exit t)
+  ("a" (find-file "~/Org/Agenda.org") "Agenda" :exit t)
+  ("g" (find-file "~/.gitignore_global") "Global Gitignore" :exit t)
+  ("f" (hydra-manjaro-files/body) "Files" :exit t))
+
+;; Open up personal hydra
+(evil-leader/set-key "'" 'hydra-personal/body)
+
+(load-file "~/pprojects/helm-org-wiki/helm-org-wiki.el")
+
+(evil-leader/set-key  "ti" 'helm-org-wiki-open-index)
+(evil-leader/set-key "tw" 'helm-org-wiki-walk-wiki)
+(evil-leader/set-key "tn" 'helm-org-wiki-create-new-article)
+(evil-leader/set-key "tb" 'helm-org-wiki-open-reading-list)
+
+(evil-leader/set-key-for-mode 'org-mode "ih" 'helm-org-wiki-haskell-block)
+(evil-leader/set-key-for-mode 'org-mode "ija" 'helm-org-wiki-java-block)
+(evil-leader/set-key-for-mode 'org-mode "ijs" 'helm-org-wiki-javascript-block)
+(evil-leader/set-key-for-mode 'org-mode "ip" 'helm-org-wiki-python-block)
+(evil-leader/set-key-for-mode 'org-mode "ic" 'helm-org-wiki-C-block)
+(evil-leader/set-key-for-mode 'org-mode "iv" 'helm-org-wiki-C++-block)
+(evil-leader/set-key-for-mode 'org-mode "ir" 'helm-org-wiki-rust-block)
+(evil-leader/set-key-for-mode 'org-mode "ie" 'helm-org-wiki-emacs-lisp-block)
+(evil-leader/set-key-for-mode 'org-mode "ila" 'helm-org-wiki-latex-block)
+(evil-leader/set-key-for-mode 'org-mode "ilp" 'helm-org-wiki-lisp-block)
+(evil-leader/set-key-for-mode 'org-mode "is" 'helm-org-wiki-sh-block)
+
 ;;Snippets manager
 (use-package yasnippet
   :ensure t
-  :defer 3
   :config
   (yas-global-mode 1))
 
@@ -363,10 +357,11 @@
   :ensure t
   :config
   (evil-leader/set-key "pa" 'projectile-discover-projects-in-directory)
-  (evil-leader/set-key "pc" 'projectile-commander)
   (evil-leader/set-key "pk" 'projectile-kill-buffers)
   (projectile-mode 1)
-  (setq projectile-enable-caching t))
+  (setq projectile-enable-caching t)
+  (push ".ccls-cache" projectile-globally-ignored-directories)
+  )
 
 (use-package helm-projectile
   :ensure t 
@@ -383,7 +378,14 @@
   ;; Finds a directory and opens it within project
   (evil-leader/set-key "pd" 'helm-projectile-find-dir)
   ;; Switches to a project buffer
-  (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer))
+  (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer)
+  ;; Use ripgrep on project
+  (evil-leader/set-key "pg" 'helm-projectile-rg)
+  ;; Invalidate cache for current project/remove a project
+  (evil-leader/set-key "pr" 'helm-projectile-remove-known-project)
+  ;; Compile the project
+  (evil-leader/set-key "pc" 'helm-projectile-compile-project)
+  )
 
 (defun yav-go-up-org-heading ()
 "Go up to the parent heading and automatically close it"
@@ -859,18 +861,52 @@
   (elfeed)
   (elfeed-update))
 
+(use-package wttrin
+  :ensure t
+  :defer 5
+  :config
+  (setq wttrin-default-cities '("Varna,Bulgaria" "Vancouver,Canada" "Maple Ridge,Canada" "Burnaby,Canada"))
+  (setq wttrin-default-accept-language '("Accept-Language" . "en"))
+  )
+
+;; Set normal state
+(evil-set-initial-state 'help-mode 'normal)
+
+;; Rebind q to quit
+(evil-define-key 'normal help-mode-map (kbd "q") (lambda ()
+                                                (interactive)
+                                                   (quit-window t)))
+;; Skip around buttons
+(evil-define-key 'normal help-mode-map (kbd "TAB") (lambda ()
+                                                     (interactive)
+                                                     (forward-button 1 t t)))
+
+;; For package manager
+ (define-key package-menu-mode-map (kbd "j") 'next-line)
+ (define-key package-menu-mode-map (kbd "k") 'previous-line)
+ (define-key package-menu-mode-map (kbd "l") 'package-menu-describe-package)
+ (define-key package-menu-mode-map "i" 'package-menu-mark-install)
+ (define-key package-menu-mode-map "x" 'package-menu-execute)
+ (define-key package-menu-mode-map "u" 'package-menu-mark-upgrades)
+(define-key package-menu-mode-map (kbd "q") (lambda ()
+                                         (kill-current-buffer)))
+ (define-key package-menu-mode-map "/" 'evil-search-forward)
+ (define-key package-menu-mode-map "?" 'evil-search-backward)
+ (define-key package-menu-mode-map "n" 'evil-search-next)
+ (define-key package-menu-mode-map "N" 'evil-search-previous)
+
 (use-package lsp-mode
   :ensure t
   :commands (lsp)
   :config
-  (add-hook 'c-mode-hook #'lsp)
   (setq lsp-prefer-flymake nil)
-  (add-hook 'c++-mode-hook #'lsp)
-
   (setq lsp-enable-snippet t)
   (setq lsp-enable-xref t)
   (setq lsp-enable-folding t)
-  (setq lsp-enable-indentation t))
+  (setq lsp-enable-indentation t)
+  (setq lsp-auto-guess-root t)
+  (setq lsp-enable-file-watchers t)
+  )
 
 ;; ;;frontend for completions
 (use-package company
@@ -919,10 +955,29 @@
     :commands (lsp-ui-mode)
     :config
     (setq lsp-ui-sideline-ignore-duplicate t
-          lsp-ui-doc-max-height 20
-          lsp-ui-peek-always-show t
-          lsp-ui-doc-mode nil
-          lsp-ui-doc-max-width 50))
+          lsp-ui-doc-mode t))
+
+(use-package origami
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook 'origami-mode))
+
+;; Custom  function to add a project to lsp workspaces or ignore it
+(defun add-to-lsp-workspace?()
+  "If lsp cannot locate the folder for the project root, ask the
+   user to either specify one or to not use lsp.  If it is found,
+   ask if it should be used."
+  (interactive)
+  (if (not (lsp-workspace-root (buffer-file-name)))
+      (if (y-or-n-p "No workspace found! Add to workspaces and run lsp or skip lsp?")
+          (progn
+            (lsp-workspace-folders-add (read-string "Add the path:")))
+            (lsp)_
+            )
+    (if (y-or-n-p "Start lsp?")
+        (lsp))
+      )
+  )
 
 (use-package geiser
   :ensure t
@@ -964,19 +1019,16 @@
                 (yas-minor-mode)))
 
 (use-package rustic
-  :ensure t)
+  :ensure t
+  :config
+  (setq rustic-rls-pkg t)
+  (setq rustic-lsp-server 'rust-analyzer)
+  )
 
-;; ;; Due to issues with installing ghc-mod on manjaro(and lack of support for new compiler), this will replace it.
-;; (use-package haskell-snippets
-;;   :ensure t
-;;   :after (intero))
-
-;; (use-package intero
-;;   :ensure t
-;;   :init (add-hook 'haskell-mode-hook 'intero-mode)
-;;   :config
-;;   (yas-minor-mode)
-;;   (flycheck-mode))
+(use-package haskell-mode
+  :ensure t
+  :init
+  (add-to-list 'auto-mode-alist '("\\.l?hs$" . haskell-mode)))
 
 ;;Default emacs python mode, set up a hook for it to enable elpy
 (use-package python
@@ -985,20 +1037,24 @@
 
 (use-package lsp-python-ms
   :ensure t
-  :demand t
-  :hook (python-mode . lsp)
-  :config
-  (setq lsp-python-ms-dir
-        (expand-file-name "~/python-language-server/output/bin/Release"))
-  (setq lsp-python-ms-executable
-        "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer")
-  ;; (setq lsp-python-ms-executable
-  ;;       "~/.vscode/extensions/ms-python.python-2019.4.11987/languageServer.0.2.63/Microsoft.Python.LanguageServer")
-  (yas-minor-mode))
+  :after python)
+  ;;:config
+  ;;(add-hook 'python-mode-hook 'add-to-lsp-workspace?))
+
+  ;;:config
+  ;; for dev build of language server
+;;  (setq lsp-python-ms-dir
+ ;;       (expand-file-name "~/python-language-server/output/bin/Release/"))
+  ;;(setq lsp-python-ms-executable
+   ;;     "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer"))
 
  (use-package py-autopep8
   :ensure t
   :hook (python-mode . py-autopep8-enable-on-save))
+
+;; (add-hook 'python-mode-hook (lambda ()
+;;                               (lsp)
+;;                               (yas-minor-mode)))
 
 ;; (use-package basic-c-compile
 ;;   :ensure t
@@ -1050,12 +1106,12 @@
 
 (add-hook 'c-mode-hook (lambda ()
                          (require 'ccls)
-                         (lsp)
+                         ;;(add-to-lsp-workspace?)
                          (company-statistics-mode)))
 
 (add-hook 'c++-mode-hook (lambda ()
                            (require 'ccls)
-                           (lsp)
+                          ;; (add-to-lsp-workspace?)
                            (company-statistics-mode)))
 
 (use-package js2-mode
@@ -1064,16 +1120,16 @@
 
 (use-package tide
   :ensure t
-  :after (js2-mode))
+  :after js2-mode)
 
 
 (use-package js2-refactor
   :ensure t
-  :after (js2-mode))
+  :after js2-mode)
 
 (use-package skewer-mode
   :ensure t
-  :after (js2-mode))
+  :after js2-mode)
 
   (add-hook 'js2-mode-hook (lambda ()
                               (tide-setup)
@@ -1131,16 +1187,9 @@
    :ensure t
    :defer t)
 
-(use-package doom-themes
-  :ensure t
-  :config
-  (setq doom-themes-enable-bold t
-        doom-themes-enable-italic t)
-  (doom-themes-org-config)
-  (doom-themes-visual-bell-config))
 
   ;;Theme settings
-  (load-theme 'doom-molokai t)
+  (load-theme 'monokai t)
 
 (use-package all-the-icons
   :ensure t)
