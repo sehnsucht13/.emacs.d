@@ -11,12 +11,20 @@
 ;; (setq use-package-verbose t)
 
 ;; more logging
-;; (setq use-package-compute-statistics t)
+(setq use-package-compute-statistics t)
+
+(defun minibuffer-increase-threshold ()
+  "Small function I stole from somebodys init. Used for entering the minibuffers for autocomplete/fuzzy searching and simply increases the threshold"
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun minibuffer-normal-threshold ()
+  "Another small function i stole. Instead of increasing the gc threshold, it brings it to normal(that is 800 KB)"
+  (setq gc-cons-threshold 1000000))
 
 ;;Increases threshold to the maximum, helps not slow down fuzzy searches
-(add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
+;(add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
 ;;Returns it to normal afterwards
-(add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
+;(add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
 
 ;;Disable backup files
 (setq make-backup-files nil)
@@ -60,7 +68,7 @@
 ;; line break at 80 chars
 (setq-default fill-column 80)
 ;; Wrap at 80
-(turn-on-auto-fill)
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; Visual indicators for wrap lines
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
@@ -79,6 +87,9 @@
 
 ;;Set initial buffer mode to text mode.
 (setq initial-major-mode 'emacs-lisp-mode)
+
+;; Highlight current line
+(global-hl-line-mode)
 
 ;; Set hack as default font
 (set-frame-font "Hack 11" nil t)
@@ -235,6 +246,7 @@
       (helm-mode 1)
       :config
       (setq helm-mode-fuzzy-match t)
+      (setq helm-split-window-default-side 'right)
       ;; Basic navigation
       (define-key helm-map (kbd "C-j") 'helm-next-line)
       (define-key helm-map (kbd "C-k") 'helm-previous-line)
@@ -271,13 +283,9 @@
 
 )
 
-(defun minibuffer-increase-threshold ()
-  "Small function I stole from somebodys init. Used for entering the minibuffers for autocomplete/fuzzy searching and simply increases the threshold"
-  (setq gc-cons-threshold most-positive-fixnum))
-
-(defun minibuffer-normal-threshold ()
-  "Another small function i stole. Instead of increasing the gc threshold, it brings it to normal(that is 800 KB)"
-  (setq gc-cons-threshold 1000000))
+(use-package helm-rg
+  :ensure t
+  )
 
 (defun open-init-file ()
 "Open the init file written in org"
@@ -341,6 +349,9 @@
 (evil-leader/set-key-for-mode 'org-mode "ila" 'helm-org-wiki-latex-block)
 (evil-leader/set-key-for-mode 'org-mode "ilp" 'helm-org-wiki-lisp-block)
 (evil-leader/set-key-for-mode 'org-mode "is" 'helm-org-wiki-sh-block)
+
+(use-package rainbow-delimiters
+  :ensure t)
 
 ;;Snippets manager
 (use-package yasnippet
@@ -738,6 +749,7 @@
   :ensure t
   :after (flycheck))
 
+;; Git interface
 (use-package magit
   :ensure t
   :defer t
@@ -747,6 +759,13 @@
   (evil-leader/set-key "mp" 'magit-push)
   (evil-leader/set-key "mc" 'magit-commit)
   (evil-leader/set-key "md" 'magit-pull))
+
+;; List all todos in repo
+(use-package magit-todos
+  :ensure t
+  :after magit
+  :config
+  (evil-leader/set-key "mt" 'magit-todos-list))
 
 ;;Bindings for the emacs calendar. Used often with deadlines and overall agenda related tasks
 (define-key calendar-mode-map "j" 'calendar-forward-day)
@@ -905,6 +924,7 @@
   (setq lsp-enable-folding t)
   (setq lsp-enable-indentation t)
   (setq lsp-auto-guess-root t)
+  (setq lsp-enable-on-type-formatting t)
   (setq lsp-enable-file-watchers t)
   )
 
@@ -941,20 +961,21 @@
 ;; Keeps a file containing the most used completions
 (use-package company-statistics
   :ensure t
-  :after (company-lsp))
+  :after company-lsp)
 
 
 (use-package company-c-headers
   :ensure t
-  :after (company-lsp)
+  :after company-lsp
   :config
   (add-to-list 'company-backends 'company-c-headers))
 
   (use-package lsp-ui
     :ensure t
-    :commands (lsp-ui-mode)
+    :commands lsp-ui-mode
     :config
     (setq lsp-ui-sideline-ignore-duplicate t
+          lsp-ui-sideline-enable nil
           lsp-ui-doc-mode t))
 
 (use-package origami
@@ -971,12 +992,16 @@
   (if (not (lsp-workspace-root (buffer-file-name)))
       (if (y-or-n-p "No workspace found! Add to workspaces and run lsp or skip lsp?")
           (progn
-            (lsp-workspace-folders-add (read-string "Add the path:")))
-            (lsp)_
+            (lsp-workspace-folders-add (read-string "Add the path:"))
+            (lsp)
             )
+        )
+    (progn
     (if (y-or-n-p "Start lsp?")
-        (lsp))
-      )
+        (lsp)
+      (message "lsp not started"))
+    )
+    )
   )
 
 (use-package geiser
@@ -1020,6 +1045,7 @@
 
 (use-package rustic
   :ensure t
+  :mode "\\.rs$"
   :config
   (setq rustic-rls-pkg t)
   (setq rustic-lsp-server 'rust-analyzer)
@@ -1038,23 +1064,16 @@
 (use-package lsp-python-ms
   :ensure t
   :after python)
-  ;;:config
-  ;;(add-hook 'python-mode-hook 'add-to-lsp-workspace?))
-
-  ;;:config
-  ;; for dev build of language server
-;;  (setq lsp-python-ms-dir
- ;;       (expand-file-name "~/python-language-server/output/bin/Release/"))
-  ;;(setq lsp-python-ms-executable
-   ;;     "~/python-language-server/output/bin/Release/linux-x64/publish/Microsoft.Python.LanguageServer"))
 
  (use-package py-autopep8
   :ensure t
   :hook (python-mode . py-autopep8-enable-on-save))
 
-;; (add-hook 'python-mode-hook (lambda ()
-;;                               (lsp)
-;;                               (yas-minor-mode)))
+ (add-hook 'python-mode-hook (lambda ()
+                               ;;(add-to-lsp-workspace?)
+                               (add-to-lsp-workspace?)
+                               (origami-mode)
+                               (yas-minor-mode)))
 
 ;; (use-package basic-c-compile
 ;;   :ensure t
@@ -1106,17 +1125,20 @@
 
 (add-hook 'c-mode-hook (lambda ()
                          (require 'ccls)
-                         ;;(add-to-lsp-workspace?)
+                         (add-to-lsp-workspace?)
+                         (origami-mode)
                          (company-statistics-mode)))
 
 (add-hook 'c++-mode-hook (lambda ()
                            (require 'ccls)
-                          ;; (add-to-lsp-workspace?)
+                           (add-to-lsp-workspace?)
+                           (origami-mode)
                            (company-statistics-mode)))
 
 (use-package js2-mode
   :ensure t
-  :mode "\\.js\\'")
+  :after js-mode
+  :mode "\\.js$'")
 
 (use-package tide
   :ensure t
@@ -1136,6 +1158,7 @@
                               (tide-mode)
                               (eldoc-mode +1)
                               (flycheck-mode +1)
+                              (origami-mode)
                               (tide-hl-identifier-mode +1)
                               (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
                               (company-mode +1)))
@@ -1164,7 +1187,7 @@
 
 (use-package go-mode
   :ensure t
-  :mode ("\\.go" . go-mode))
+  :mode ("\\.go$" . go-mode))
 
 ;;Remove some of the default tool bars and scroll bars   
   (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
