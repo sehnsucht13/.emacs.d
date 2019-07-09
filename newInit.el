@@ -924,6 +924,12 @@
  (define-key package-menu-mode-map "n" 'evil-search-next)
  (define-key package-menu-mode-map "N" 'evil-search-previous)
 
+(use-package aggressive-indent
+  :ensure t
+  :config
+  (global-aggressive-indent-mode 1)
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+
 (use-package lsp-mode
   :ensure t
   :commands (lsp)

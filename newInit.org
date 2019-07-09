@@ -1022,6 +1022,14 @@ Enable pandoc, deffered until called
    (define-key package-menu-mode-map "N" 'evil-search-previous)
 
 #+END_SRC
+*** Aggressive indent
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package aggressive-indent
+    :ensure t
+    :config
+    (global-aggressive-indent-mode 1)
+    (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+#+END_SRC
 ** Languages
 *** Auto Completion
 **** LSP Based
