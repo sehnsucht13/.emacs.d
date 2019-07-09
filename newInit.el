@@ -410,17 +410,24 @@
 (evil-leader/set-key "oc" 'org-capture)
 
 ;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO(t)" "MAYBE(m)" "HACK(h)" "WAITING(w)" "CURRENT(f)" "NEXT(n)"  "|" "DONE(d)" "CANCELLED(c)")))
+(setq org-todo-keywords '((sequence "TODO(t)" "DOING(d)" "MAYBE(m)" "HACK(h)"
+                                    "WAITING(w)" "HABIT(H)" "NEXT(n)"
+                                    "TEST(T)" "ADMIN(A)" "ASSIGNMENT(a)" "SCHOOL(s)"
+                                    "|" "DONE(D)" "CANCELLED(c)")))
 
 ;;Org capture file
 (setq org-default-notes-file "~/Org/OrgCaptures.org")
 
-;;Make it so agenda opens horizontally
-(setq split-height-threshold 40)
-(setq split-width-threshold nil)
-(setq org-agenda-window-setup 'reorganize-frame)
+;; Open agenda in full window
+(setq org-agenda-window-setup 'current-window)
 (setq org-agenda-restore-windows-after-quit t)
-(setq org-agenda-window-frame-fractions '(0.7 . 0.8))
+
+;;Make it so agenda opens horizontally
+;; (setq split-height-threshold 80)
+;; (setq split-width-threshold nil)
+;; (setq org-agenda-window-frame-fractions '(0.7 . 0.8))
+
+;; Skip done deadlines
 (setq org-agenda-skip-deadline-if-done t)
 
 ;;Bindings for org mode. Only valid in org buffers
@@ -542,14 +549,17 @@
 
 ;;Helps organize the agenda view
   (use-package org-super-agenda
-  :ensure t
-  :config
+    :ensure t
+    :after org-mode
+    :config
   (org-super-agenda-mode)
   (setq org-super-agenda-groups
-        '((:name "Today" :todo "TODO")
-          (:name "Hack Todo" :todo "HACK")
-            (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT"))
-            (:name "Maybe" :todo "MAYBE"))))
+        '((:name "Daily" :todo "HABIT")
+          (:name "Working On" :todo ("DOING" "WAITING"))
+          (:name "Todo" :todo ("TODO" "NEXT"))
+          (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT" "SCHOOL"))
+          (:name "Hack On" :todo "HACK")
+          (:name "Maybe" :todo "MAYBE"))))
 
 ;;Provides mathematical symbols in org mode
 (use-package company-math
