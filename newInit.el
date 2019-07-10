@@ -68,13 +68,16 @@
 ;; line break at 80 chars
 (setq-default fill-column 80)
 ;; Wrap at 80
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
+(if (< emacs-major-version 27)
+    (add-hook 'text-mode-hook 'refill-mode)
+  (add-hook 'text-mode-hook 'turn-on-auto-fill)
+  )
 
 ;; Visual indicators for wrap lines
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 ;;Wrap lines so they do not go past screen edge
-(global-visual-line-mode 1)
+;(global-visual-line-mode 1)
 
 ;;Stop keys being echoed in minibuffer. Messes up which-key
 (setq echo-keystrokes 0)
@@ -131,7 +134,7 @@
                      "we" 'evil-next-buffer)
 
 ;;Show all buffers available 
-(evil-leader/set-key "ws" 'helm-mini)
+(evil-leader/set-key "ws" 'helm-buffers-list)
 
 ;;Open up external shell(async process)
 (evil-leader/set-key "ss" 'start-external-shell)
@@ -236,8 +239,12 @@
   (global-evil-matchit-mode 1))
 
 (use-package hydra
-:ensure t
-)
+  :ensure t
+  )
+
+(use-package transient
+  :ensure t
+  )
 
 (use-package helm
       :ensure t
@@ -350,6 +357,10 @@
 (evil-leader/set-key-for-mode 'org-mode "ilp" 'helm-org-wiki-lisp-block)
 (evil-leader/set-key-for-mode 'org-mode "is" 'helm-org-wiki-sh-block)
 
+;; New terminal emulator
+(add-to-list 'load-path "~/.emacs.d/emacs-libvterm/")
+(require 'vterm)
+
 (use-package rainbow-delimiters
   :ensure t)
 
@@ -397,225 +408,6 @@
   ;; Compile the project
   (evil-leader/set-key "pc" 'helm-projectile-compile-project)
   )
-
-(defun yav-go-up-org-heading ()
-"Go up to the parent heading and automatically close it"
-(interactive)
-  (outline-up-heading 1))
-
-;;Open the agenda from anywhere
-(evil-leader/set-key "oa" 'org-agenda)
-
-;;Org capture
-(evil-leader/set-key "oc" 'org-capture)
-
-;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO(t)" "DOING(d)" "MAYBE(m)" "HACK(h)"
-                                    "WAITING(w)" "HABIT(H)" "NEXT(n)"
-                                    "TEST(T)" "ADMIN(A)" "ASSIGNMENT(a)" "SCHOOL(s)"
-                                    "|" "DONE(D)" "CANCELLED(c)")))
-
-;;Org capture file
-(setq org-default-notes-file "~/Org/OrgCaptures.org")
-
-;; Open agenda in full window
-(setq org-agenda-window-setup 'current-window)
-(setq org-agenda-restore-windows-after-quit t)
-
-;;Make it so agenda opens horizontally
-;; (setq split-height-threshold 80)
-;; (setq split-width-threshold nil)
-;; (setq org-agenda-window-frame-fractions '(0.7 . 0.8))
-
-;; Skip done deadlines
-(setq org-agenda-skip-deadline-if-done t)
-
-;;Bindings for org mode. Only valid in org buffers
-(use-package org
-  :ensure t
-  :mode ("\\.org\\'" . org-mode)
-  :init
-  (setq org-log-done 'time)
-  (setq org-deadline-warning-days 18)
-  (setq org-agenda-start-on-weekday nil)
-  (setq org-agenda-span (quote 7))
-  (setq org-agenda-start-day "-1d")
-  (setq org-agenda-remove-tags t)
-  (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
-  ;; start indented
-  (setq org-startup-indented t)
-  ;;hide bold,italics...
-  (setq org-hide-emphasis-markers t)
-  ;; Hide leading stars. Looks better
-  (setq org-hide-leading-stars t)
-  ;; Open file in current buffer, not split
-  (setq org-link-frame-setup '((file . find-file)))
-  :config
-  ;; Capture templates
-  (setq org-capture-templates
-        '(("t" "Todo entry" entry (file+headline "~/Org/Agenda.org" "Today")
-           "* TODO %?" :kill-buffer t)
-          ("m" "Maybe entry" entry (file+headline "~/Org/Agenda.org" "Maybe Today")
-           "* MAYBE %?" :kill-buffer t)
-          ("s" "School question" entry (file+headline "~/Org/School.org" "Questions")
-           "* QUESTION %?" :kill-buffer t :prepend t)
-          ("r" "Research/Read About" entry (file+headline "~/Wiki/ProjectIdeas/ToResearch.org" "To Find Out")
-           "* RESEARCH %?" :kill-buffer t :prepend t)
-          ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
-           "* TODO %?" :kill-buffer t :prepend t)
-          ("f" "Books" entry (file+headline "~/Org/Agenda.org" "Current Reading List")
-           "** INSERT \n %(helm-org-wiki--get-org-link)")))
-
-
-
-  ;; Do not split lines on a new todo
-  (setq org-M-RET-may-split-line '((default . nil)))
-
-  (setq org-file-apps
-        '((auto-mode . emacs)
-          ("\\.pdf\\'" . "zathura %s") 
-          ("\\.epub\\'" . "zathura %s")
-          ("\\.djvu\\'" . "zathura %s")))
-
-  ;; Add syntax highlight to blocks
-  (setq org-src-fontify-natively t)
-
-  ;;Native tabs in src block
-  (setq org-src-tab-acts-natively t)
-
-  ;; Dont ask to run code, simply do it
-  (setq org-confirm-babel-evaluate nil)
-
-  ;; What languages to eval in source blocks
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '(
-     (latex . t)
-     (python . t)
-     (C . t)
-     (shell . t)
-     (js . t)
-     (haskell . t)
-     (emacs-lisp . t)
-     (scheme . t)
-     (lisp . t)))
-
-
-  ;;------Org Mode Bindings
-  ;;Insert todo heading(inserts new line, inserts heading then enters insert mode)
-  (evil-leader/set-key-for-mode 'org-mode "dd" 'org-todo)
-
-  ;;Insert a table
-  (evil-leader/set-key-for-mode 'org-mode "dt" 'org-table-create-or-convert-from-region)
-  ;;Open the link at point
-  (evil-leader/set-key-for-mode 'org-mode "do" 'org-open-at-point)
-  ;;Insert a link
-  (evil-leader/set-key-for-mode 'org-mode "dl" 'org-insert-link)
-  ;;Schedule the item
-  (evil-leader/set-key-for-mode 'org-mode "ds" #'(lambda ()
-                                                   (interactive)
-                                                   (org-schedule 1)
-                                                   (org-cycle)
-                                                   (kill-buffer "*Calendar*")
-                                                   (evil-append-line 1)))
-  ;; Way too much to explain. Very important
-  (evil-leader/set-key-for-mode 'org-mode "dr" 'org-ctrl-c-ctrl-c)
-
-  ;; Insert a deadline for some item(usually todo's)
-  (evil-leader/set-key-for-mode 'org-mode "di" #'(lambda ()
-                                                  (interactive)
-                                                  (org-deadline 1)
-                                                  (org-cycle)
-                                                  (kill-buffer "*Calendar*")
-                                                  (evil-append-line 1)))
-  ;;Compilation menu
-  (evil-leader/set-key-for-mode 'org-mode "dc" 'org-export-dispatch)
-
-  ;; Edit code blocks with syntax highlighting and so on
-  (evil-leader/set-key-for-mode 'org-mode "de" 'org-edit-special)
-
-  ;;Clock in
-  (evil-leader/set-key-for-mode 'org-mode "oi" 'org-clock-in)
-  ;; Clock out
-  (evil-leader/set-key-for-mode 'org-mode "oo" 'org-clock-out)
-  ;; Cancel
-  (evil-leader/set-key-for-mode 'org-mode "os" 'org-clock-cancel)
-
-  ;; Navigation
-  (define-key org-mode-map (kbd "M-j") 'org-forward-heading-same-level)
-  (define-key org-mode-map (kbd "M-k") 'org-backward-heading-same-level)
-  (define-key org-mode-map (kbd "M-h") 'yav-go-up-org-heading)
-  )
-
-;;Helps organize the agenda view
-  (use-package org-super-agenda
-    :ensure t
-    :after org-mode
-    :config
-  (org-super-agenda-mode)
-  (setq org-super-agenda-groups
-        '((:name "Daily" :todo "HABIT")
-          (:name "Working On" :todo ("DOING" "WAITING"))
-          (:name "Todo" :todo ("TODO" "NEXT"))
-          (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT" "SCHOOL"))
-          (:name "Hack On" :todo "HACK")
-          (:name "Maybe" :todo "MAYBE"))))
-
-;;Provides mathematical symbols in org mode
-(use-package company-math
-  :ensure t
-  :defer t)
-
-;; Journaling mode
-(use-package org-journal
-  :ensure t
-  :config
-  (setq org-journal-carryover-items nil)
-  (setq org-journal-dir "~/Org/Others/Journal")
-  (setq org-journal-find-file 'find-file)
-
-  (evil-leader/set-key "]t" 'org-journal-new-entry)
-  (add-hook 'org-journal-after-entry-create-hook 'org-journal-mode)
-  (evil-leader/set-key-for-mode 'org-journal-mode "dj" 'org-journal-next-entry)
-  (evil-leader/set-key-for-mode 'org-journal-mode "dk" 'org-journal-previous-entry)
-  (evil-leader/set-key-for-mode 'org-journal-mode "ds" 'org-journal-search)
-  ;; Override default behaviour. Was a pain in the ass to execute a buffer local hook.
-  (evil-leader/set-key-for-mode 'org-journal-mode "wk" (lambda ()
-                                                         (interactive)
-                                                         (save-buffer)
-                                                         (kill-buffer-and-window))))
-
-
-   ;;Bindings for the agenda view itself(not valid in org mode!!!)
-(define-key org-agenda-mode-map "q" 'org-agenda-exit)
-(define-key org-agenda-mode-map "j" 'org-agenda-next-item)
-(define-key org-agenda-mode-map "k" 'org-agenda-previous-item)
-(define-key org-agenda-mode-map "d" 'org-agenda-todo)
-(define-key org-agenda-mode-map "h" 'org-agenda-earlier)
-(define-key org-agenda-mode-map "l" 'org-agenda-later)
-(define-key org-agenda-mode-map (kbd "C-j") 'org-agenda-next-line)
-(define-key org-agenda-mode-map (kbd "C-k") 'org-agenda-previous-line)
-(evil-leader/set-key-for-mode 'org-agenda-mode "di" 'org-agenda-clock-in)
-(evil-leader/set-key-for-mode 'org-agenda-mode "do" 'org-agenda-clock-out)
-(evil-leader/set-key-for-mode 'org-agenda-mode "dc" 'org-agenda-clock-cancel)
-(evil-leader/set-key-for-mode 'org-agenda-mode "df" 'org-agenda-filter-by-tag)
-
-;; Provides async execution of blocks
-(use-package ob-async
-  :ensure t
-  :after (org))
-
-(use-package org-bullets
-  :ensure t
-  :init
-  (add-hook 'org-mode-hook (lambda ()
-                             (org-bullets-mode 1))))
-
-(use-package org-download
-  :ensure t
-  :after (org)
-  :config
-  (add-hook 'dired-mode-hook 'org-download-enable))
 
 (use-package treemacs
 :ensure t
@@ -924,6 +716,224 @@
  (define-key package-menu-mode-map "n" 'evil-search-next)
  (define-key package-menu-mode-map "N" 'evil-search-previous)
 
+;;Bindings for org mode. Only valid in org buffers
+(use-package org
+  :ensure org-plus-contrib
+  :mode ("\\.org\\'" . org-mode)
+  :config
+  (setq org-log-done 'time)
+  (setq org-deadline-warning-days 14)
+  (setq org-agenda-start-on-weekday nil)
+  (setq org-agenda-span (quote 7))
+  (setq org-agenda-start-day "-1d")
+  (setq org-agenda-remove-tags t)
+  (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
+  ;; start indented
+  (setq org-startup-indented t)
+  ;;hide bold,italics...
+  (setq org-hide-emphasis-markers t)
+  ;; Hide leading stars. Looks better
+  (setq org-hide-leading-stars t)
+  ;; Open file in current buffer, not split
+  (setq org-link-frame-setup '((file . find-file)))
+  :config
+  ;; Capture templates
+  (setq org-capture-templates
+        '(("t" "Todo entry" entry (file+headline "~/Org/Agenda.org" "Today")
+           "* TODO %?" :kill-buffer t)
+          ("m" "Maybe entry" entry (file+headline "~/Org/Agenda.org" "Maybe Today")
+           "* MAYBE %?" :kill-buffer t)
+          ("s" "School question" entry (file+headline "~/Org/School.org" "Questions")
+           "* QUESTION %?" :kill-buffer t :prepend t)
+          ("r" "Research/Read About" entry (file+headline "~/Wiki/ProjectIdeas/ToResearch.org" "To Find Out")
+           "* RESEARCH %?" :kill-buffer t :prepend t)
+          ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
+           "* TODO %?" :kill-buffer t :prepend t)
+          ("f" "Books" entry (file+headline "~/Org/Agenda.org" "Current Reading List")
+           "** INSERT \n %(helm-org-wiki--get-org-link)")))
+
+
+
+  ;; Do not split lines on a new todo
+  (setq org-M-RET-may-split-line '((default . nil)))
+
+  (setq org-file-apps
+        '((auto-mode . emacs)
+          ("\\.pdf\\'" . "zathura %s") 
+          ("\\.epub\\'" . "zathura %s")
+          ("\\.djvu\\'" . "zathura %s")))
+
+  ;; Add syntax highlight to blocks
+  (setq org-src-fontify-natively t)
+
+  ;;Native tabs in src block
+  (setq org-src-tab-acts-natively t)
+
+  ;; Dont ask to run code, simply do it
+  (setq org-confirm-babel-evaluate nil)
+
+  ;; What languages to eval in source blocks
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(
+     (latex . t)
+     (python . t)
+     (C . t)
+     (shell . t)
+     (js . t)
+     (haskell . t)
+     (emacs-lisp . t)
+     (scheme . t)
+     (lisp . t)))
+
+
+  ;;------Org Mode Bindings
+  ;;Insert todo heading(inserts new line, inserts heading then enters insert mode)
+  (evil-leader/set-key-for-mode 'org-mode "dd" 'org-todo)
+
+  ;;Insert a table
+  (evil-leader/set-key-for-mode 'org-mode "dt" 'org-table-create-or-convert-from-region)
+  ;;Open the link at point
+  (evil-leader/set-key-for-mode 'org-mode "do" 'org-open-at-point)
+  ;;Insert a link
+  (evil-leader/set-key-for-mode 'org-mode "dl" 'org-insert-link)
+  ;;Schedule the item
+  (evil-leader/set-key-for-mode 'org-mode "ds" #'(lambda ()
+                                                   (interactive)
+                                                   (org-schedule 1)
+                                                   (org-cycle)
+                                                   (kill-buffer "*Calendar*")
+                                                   (evil-append-line 1)))
+  ;; Way too much to explain. Very important
+  (evil-leader/set-key-for-mode 'org-mode "dr" 'org-ctrl-c-ctrl-c)
+
+  ;; Insert a deadline for some item(usually todo's)
+  (evil-leader/set-key-for-mode 'org-mode "di" #'(lambda ()
+                                                   (interactive)
+                                                   (org-deadline 1)
+                                                   (org-cycle)
+                                                   (kill-buffer "*Calendar*")
+                                                   (evil-append-line 1)))
+  ;;Compilation menu
+  (evil-leader/set-key-for-mode 'org-mode "dc" 'org-export-dispatch)
+
+  ;; Edit code blocks with syntax highlighting and so on
+  (evil-leader/set-key-for-mode 'org-mode "de" 'org-edit-special)
+
+  ;;Clock in
+  (evil-leader/set-key-for-mode 'org-mode "oi" 'org-clock-in)
+  ;; Clock out
+  (evil-leader/set-key-for-mode 'org-mode "oo" 'org-clock-out)
+  ;; Cancel
+  (evil-leader/set-key-for-mode 'org-mode "os" 'org-clock-cancel)
+
+  ;; Navigation
+  (define-key org-mode-map (kbd "M-j") 'org-forward-heading-same-level)
+  (define-key org-mode-map (kbd "M-k") 'org-backward-heading-same-level)
+  (define-key org-mode-map (kbd "M-h") 'yav-go-up-org-heading)
+
+  )
+
+;;Open the agenda from anywhere
+(evil-leader/set-key "oa" 'org-agenda)
+
+;;Org capture
+(evil-leader/set-key "oc" 'org-capture)
+
+;;Org mode todo states
+(setq org-todo-keywords '((sequence "TODO(t)" "DOING(d)" "MAYBE(m)" "HACK(h)"
+                                    "WAITING(w)" "HABIT(H)" "NEXT(n)"
+                                    "TEST(T)" "ADMIN(A)" "ASSIGNMENT(a)" "SCHOOL(s)"
+                                    "|" "DONE(D)" "CANCELLED(c)")))
+
+;;Org capture file
+(setq org-default-notes-file "~/Org/OrgCaptures.org")
+
+;; Open agenda in full window
+(setq org-agenda-window-setup 'current-window)
+(setq org-agenda-restore-windows-after-quit t)
+
+;;Make it so agenda opens horizontally
+;; (setq split-height-threshold 80)
+;; (setq split-width-threshold nil)
+;; (setq org-agenda-window-frame-fractions '(0.7 . 0.8))
+
+;; Skip done deadlines
+(setq org-agenda-skip-deadline-if-done t)
+
+
+;;Helps organize the agenda view
+(use-package org-super-agenda
+  :ensure t
+  :after org
+  :config
+  (org-super-agenda-mode)
+  (setq org-super-agenda-groups
+        '((:name "Daily" :todo "HABIT")
+          (:name "Working On" :todo ("DOING" "WAITING"))
+          (:name "Todo" :todo ("TODO" "NEXT"))
+          (:name "School" :todo ("TEST" "ADMIN" "ASSIGNMENT" "SCHOOL"))
+          (:name "Hack On" :todo "HACK")
+          (:name "Maybe" :todo "MAYBE")))
+
+  ;;Bindings for the agenda view itself(not valid in org mode!!!)
+  (define-key org-agenda-keymap "q" 'org-agenda-exit)
+  (define-key org-agenda-keymap "j" 'org-agenda-next-item)
+  (define-key org-agenda-keymap "k" 'org-agenda-previous-item)
+  (define-key org-agenda-keymap "d" 'org-agenda-todo)
+  (define-key org-agenda-keymap "h" 'org-agenda-earlier)
+  (define-key org-agenda-keymap "l" 'org-agenda-later)
+  (define-key org-agenda-keymap (kbd "C-j") 'org-agenda-next-line)
+  (define-key org-agenda-keymap (kbd "C-k") 'org-agenda-previous-line)
+  (evil-leader/set-key-for-mode 'org-agenda-mode "di" 'org-agenda-clock-in)
+  (evil-leader/set-key-for-mode 'org-agenda-mode "do" 'org-agenda-clock-out)
+  (evil-leader/set-key-for-mode 'org-agenda-mode "dc" 'org-agenda-clock-cancel)
+  (evil-leader/set-key-for-mode 'org-agenda-mode "df" 'org-agenda-filter-by-tag)
+  )
+
+;;Provides mathematical symbols in org mode
+(use-package company-math
+  :ensure t
+  :defer t)
+
+;; Journaling mode
+(use-package org-journal
+  :ensure t
+  :config
+  (setq org-journal-carryover-items nil)
+  (setq org-journal-dir "~/Org/Others/Journal")
+  (setq org-journal-find-file 'find-file)
+
+  (evil-leader/set-key "]t" 'org-journal-new-entry)
+  (add-hook 'org-journal-after-entry-create-hook 'org-journal-mode)
+  (evil-leader/set-key-for-mode 'org-journal-mode "dj" 'org-journal-next-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "dk" 'org-journal-previous-entry)
+  (evil-leader/set-key-for-mode 'org-journal-mode "ds" 'org-journal-search)
+  ;; Override default behaviour. Was a pain in the ass to execute a buffer local hook.
+  (evil-leader/set-key-for-mode 'org-journal-mode "wk" (lambda ()
+                                                         (interactive)
+                                                         (save-buffer)
+                                                         (kill-buffer-and-window))))
+
+
+
+;; Provides async execution of blocks
+(use-package ob-async
+  :ensure t
+  :after (org))
+
+(use-package org-bullets
+  :ensure t
+  :init
+  (add-hook 'org-mode-hook (lambda ()
+                             (org-bullets-mode 1))))
+
+(use-package org-download
+  :ensure t
+  :after (org)
+  :config
+  (add-hook 'dired-mode-hook 'org-download-enable))
+
 (use-package aggressive-indent
   :ensure t
   :config
@@ -1063,9 +1073,12 @@
   :ensure t
   :mode "\\.rs$"
   :config
-  (setq rustic-rls-pkg t)
+  (setq rustic-rls-pkg 'lsp-mode)
   (setq rustic-lsp-server 'rust-analyzer)
   )
+
+;; (setq rustic-rls-pkg t)
+;; (setq rustic-lsp-server 'rust-analyzer)
 
 (use-package haskell-mode
   :ensure t
