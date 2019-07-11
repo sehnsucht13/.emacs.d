@@ -39,20 +39,38 @@
 (setq x-gtk-use-system-tooltips t)
 (setq tooltip-mode t)
 
-;;Column numbers(turned on only in prog modes)
-(add-hook 'prog-mode-hook 'column-number-mode)
+;; line break at 80 chars
+(setq-default fill-column 80)
 
-;; Relative line numbers, emacs26  only
-(setq-default display-line-numbers 'relative)
+;; Wrap at 80 automatically
+(if (< emacs-major-version 27)
+    (add-hook 'text-mode-hook 'refill-mode)
+  (add-hook 'text-mode-hook 'turn-on-auto-fill)
+  )
 
-;;Visual Parentheses matching
-(show-paren-mode 1)
+;; Relative line numbers 
+(setq display-line-numbers-type 'relative)
+
+;; Enable line numbers, emacs26/27  only in programming modes.
+(add-hook 'prog-mode-hook (lambda ()
+                            ;; Show line numbers in sideline
+                            (display-line-numbers-mode)
+                            ;; Show column numbers in mode line
+                            (column-number-mode)
+                            ;; Wrap at 80
+                            (turn-on-auto-fill)
+                            ;;Visual Parentheses matching
+                            (show-paren-mode 1)
+                            ))
+
+
 
 ;;Add parentheses matching
 (electric-pair-mode 1)
 
 ;;Tab width
 (setq-default tab-width 4)
+
 ;; Do not use tabs
 (setq-default indent-tabs-mode nil)
 
@@ -65,19 +83,12 @@
   (interactive (list my-term-shell)))
 (ad-activate 'ansi-term)
 
-;; line break at 80 chars
-(setq-default fill-column 80)
-;; Wrap at 80
-(if (< emacs-major-version 27)
-    (add-hook 'text-mode-hook 'refill-mode)
-  (add-hook 'text-mode-hook 'turn-on-auto-fill)
-  )
 
 ;; Visual indicators for wrap lines
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 ;;Wrap lines so they do not go past screen edge
-;(global-visual-line-mode 1)
+(global-visual-line-mode 1)
 
 ;;Stop keys being echoed in minibuffer. Messes up which-key
 (setq echo-keystrokes 0)
@@ -1077,9 +1088,6 @@
   (setq rustic-lsp-server 'rust-analyzer)
   )
 
-;; (setq rustic-rls-pkg t)
-;; (setq rustic-lsp-server 'rust-analyzer)
-
 (use-package haskell-mode
   :ensure t
   :init
@@ -1219,41 +1227,48 @@
   :mode ("\\.go$" . go-mode))
 
 ;;Remove some of the default tool bars and scroll bars   
-  (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
-  (if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
-  (if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 
-  ;; Remove splash screen and startup message
-  (setq inhibit-splash-screen t
-        inhibit-startup-echo-area-message t)
-
-
-  ;;Smooth scrolling
-  (setq scroll-conservatively 100)
-
-  ;;Install theme package
-  (use-package monokai-theme
-    :ensure t)
-
- (use-package spacemacs-theme
-   :ensure t
-   :defer t)
+;; Remove splash screen and startup message
+(setq inhibit-splash-screen t
+      inhibit-startup-echo-area-message t)
 
 
-  ;;Theme settings
-  (load-theme 'monokai t)
+;;Smooth scrolling
+(setq scroll-conservatively 100)
+
+;;Install theme packages
+(use-package monokai-theme
+  :ensure t
+  :defer t)
+
+(use-package spacemacs-theme
+  :ensure t
+  :defer t)
+
+;; Current theme to use
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-molokai)
+  (doom-themes-org-config)
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t
+        doom-molokai-brighter-comments t))
 
 (use-package all-the-icons
   :ensure t)
 
 (use-package doom-modeline
-      :ensure t
-      :hook (after-init . doom-modeline-mode)
-      :config
-      (setq
-       doom-modeline-icon t
-       doom-modeline-minor-modes nil
-       doom-modeline-lsp t
-       doom-modeline-buffer-modification-icon t
-       doom-modeline-major-mode-icon t
-       doom-modeline-buffer-file-name-style 'file-name))
+  :ensure t
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (setq
+   doom-modeline-icon t
+   doom-modeline-minor-modes nil
+   doom-modeline-lsp t
+   doom-modeline-buffer-modification-icon t
+   doom-modeline-major-mode-icon t
+   doom-modeline-buffer-file-name-style 'file-name))
