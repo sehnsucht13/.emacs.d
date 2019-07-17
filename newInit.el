@@ -258,48 +258,48 @@
   )
 
 (use-package helm
-      :ensure t
-      :init
-      ;; Enable helm mode
-      (helm-mode 1)
-      :config
-      (setq helm-mode-fuzzy-match t)
-      (setq helm-split-window-default-side 'right)
-      ;; Basic navigation
-      (define-key helm-map (kbd "C-j") 'helm-next-line)
-      (define-key helm-map (kbd "C-k") 'helm-previous-line)
-      (define-key helm-map (kbd "C-d") 'helm-buffer-run-kill-persistent)
-      (define-key helm-find-files-map (kbd "C-l") 'helm-execute-persistent-action)
-      (define-key helm-find-files-map (kbd "C-h") 'helm-find-files-up-one-level)
+  :ensure t
+  :init
+  ;; Enable helm mode
+  (helm-mode 1)
+  :config
+  (setq helm-mode-fuzzy-match t)
+  (setq helm-split-window-default-side 'below)
+  ;; Basic navigation
+  (define-key helm-map (kbd "C-j") 'helm-next-line)
+  (define-key helm-map (kbd "C-k") 'helm-previous-line)
+  (define-key helm-map (kbd "C-d") 'helm-buffer-run-kill-persistent)
+  (define-key helm-find-files-map (kbd "C-l") 'helm-execute-persistent-action)
+  (define-key helm-find-files-map (kbd "C-h") 'helm-find-files-up-one-level)
 
-      ;; Find files in current dir
-      (evil-leader/set-key "ff" 'helm-find-files)
+  ;; Find files in current dir
+  (evil-leader/set-key "ff" 'helm-find-files)
 
-      ;; Man pages
-      (evil-leader/set-key "fm" 'helm-man-woman)
+  ;; Man pages
+  (evil-leader/set-key "fm" 'helm-man-woman)
 
-      ;; Locate some file across the system
-      (evil-leader/set-key "fl" 'helm-locate)
+  ;; Locate some file across the system
+  (evil-leader/set-key "fl" 'helm-locate)
 
-      ;; Find function defs
-      (evil-leader/set-key "fa" 'helm-apropos)
+  ;; Find function defs
+  (evil-leader/set-key "fa" 'helm-apropos)
 
-      ;; Find occurances of some word or regexp
-      (evil-leader/set-key "fo" 'helm-occur)
+  ;; Find occurances of some word or regexp
+  (evil-leader/set-key "fo" 'helm-occur)
 
-      ;;Resume previous session
-      (evil-leader/set-key "fp" 'helm-resume)
+  ;;Resume previous session
+  (evil-leader/set-key "fp" 'helm-resume)
 
-      ;; Open dired
-      (evil-leader/set-key "fd" 'dired)
+  ;; Open dired
+  (evil-leader/set-key "fd" 'dired)
 
-      ;; Imenu or semantic, usefull for quick navigation of files
-      (evil-leader/set-key "fi" 'helm-semantic-or-imenu)
+  ;; Imenu or semantic, usefull for quick navigation of files
+  (evil-leader/set-key "fi" 'helm-semantic-or-imenu)
 
-      ;; View register contents
-      (evil-leader/set-key "fr" 'helm-register)
+  ;; View register contents
+  (evil-leader/set-key "fr" 'helm-register)
 
-)
+  )
 
 (use-package helm-rg
   :ensure t
@@ -368,9 +368,15 @@
 (evil-leader/set-key-for-mode 'org-mode "ilp" 'helm-org-wiki-lisp-block)
 (evil-leader/set-key-for-mode 'org-mode "is" 'helm-org-wiki-sh-block)
 
+(use-package avy
+  :ensure t
+  :config
+  (evil-leader/set-key "as" 'avy-goto-char-2)
+  (evil-leader/set-key "al" 'avy-goto-char-in-line))
+
 ;; New terminal emulator
-(add-to-list 'load-path "~/.emacs.d/emacs-libvterm/")
-(require 'vterm)
+;(add-to-list 'load-path "~/.emacs.d/emacs-libvterm/")
+;(require 'vterm)
 
 (use-package rainbow-delimiters
   :ensure t)
@@ -406,10 +412,6 @@
   (evil-leader/set-key "pp" 'helm-projectile)
   ;; Switches to projects
   (evil-leader/set-key "ps" 'helm-projectile-switch-project)
-  ;; Finds a file within project
-  (evil-leader/set-key "pf" 'helm-projectile-find-file)
-  ;; Finds a directory and opens it within project
-  (evil-leader/set-key "pd" 'helm-projectile-find-dir)
   ;; Switches to a project buffer
   (evil-leader/set-key "pb" 'helm-projectile-switch-to-buffer)
   ;; Use ripgrep on project
@@ -419,6 +421,17 @@
   ;; Compile the project
   (evil-leader/set-key "pc" 'helm-projectile-compile-project)
   )
+
+;; Use counsel projectile to find files. Helm-projectile is not optimized to
+;; handle large amounts of them
+(use-package counsel-projectile
+  :ensure t
+  :after projectile
+  :config
+  ;; Finds a file within project
+  (evil-leader/set-key "pf" 'counsel-projectile-find-file)
+  ;; Finds a directory and opens it within project
+  (evil-leader/set-key "pd" 'counsel-projectile-find-dir))
 
 (use-package treemacs
 :ensure t
@@ -560,7 +573,10 @@
 
 (use-package flycheck-pos-tip
   :ensure t
-  :after (flycheck))
+  :after flycheck
+  :config
+  (flycheck-pos-tip-mode)
+  )
 
 ;; Git interface
 (use-package magit
@@ -739,29 +755,32 @@
   (setq org-agenda-start-day "-1d")
   (setq org-agenda-remove-tags t)
   (setq org-tag-alist '(("@school" . ?s) ("@home" . ?h) ("@errand" . ?e) ("@goal" . ?g)))
-  ;; start indented
-  (setq org-startup-indented t)
-  ;;hide bold,italics...
-  (setq org-hide-emphasis-markers t)
-  ;; Hide leading stars. Looks better
-  (setq org-hide-leading-stars t)
-  ;; Open file in current buffer, not split
-  (setq org-link-frame-setup '((file . find-file)))
-  :config
-  ;; Capture templates
-  (setq org-capture-templates
-        '(("t" "Todo entry" entry (file+headline "~/Org/Agenda.org" "Today")
-           "* TODO %?" :kill-buffer t)
-          ("m" "Maybe entry" entry (file+headline "~/Org/Agenda.org" "Maybe Today")
-           "* MAYBE %?" :kill-buffer t)
-          ("s" "School question" entry (file+headline "~/Org/School.org" "Questions")
-           "* QUESTION %?" :kill-buffer t :prepend t)
-          ("r" "Research/Read About" entry (file+headline "~/Wiki/ProjectIdeas/ToResearch.org" "To Find Out")
-           "* RESEARCH %?" :kill-buffer t :prepend t)
-          ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
-           "* TODO %?" :kill-buffer t :prepend t)
-          ("f" "Books" entry (file+headline "~/Org/Agenda.org" "Current Reading List")
-           "** INSERT \n %(helm-org-wiki--get-org-link)")))
+  (setq
+   org-startup-indented t
+
+   ;;hide bold,italics...
+   org-hide-emphasis-markers t
+
+   ;; Hide leading stars. Looks better
+   org-hide-leading-stars t
+
+   ;; Open file in current buffer, not split
+   org-link-frame-setup '((file . find-file))
+
+   ;; Capture templates
+   org-capture-templates
+   '(("t" "Todo entry" entry (file+headline "~/Org/Agenda.org" "Today")
+      "* TODO %?" :kill-buffer t)
+     ("m" "Maybe entry" entry (file+headline "~/Org/Agenda.org" "Maybe Today")
+      "* MAYBE %?" :kill-buffer t)
+     ("s" "School Question" entry (file+headline "~/Org/School.org" "Questions")
+      "* QUESTION %?" :kill-buffer t :prepend t)
+     ("r" "Research/Read About" entry (file+headline "~/Wiki/ProjectIdeas/ToResearch.org" "To Find Out")
+      "* RESEARCH %?" :kill-buffer t :prepend t)
+     ("p" "Project Idea" entry (file+headline "~/Wiki/ProjectIdeas/ProjectIdeas.org" "Project Ideas")
+      "* TODO %?" :kill-buffer t :prepend t)
+     ("f" "Books" entry (file+headline "~/Org/Agenda.org" "Current Reading List")
+      "** INSERT \n %(helm-org-wiki--get-org-link)")))
 
 
 
@@ -846,16 +865,24 @@
   )
 
 ;;Open the agenda from anywhere
-(evil-leader/set-key "oa" 'org-agenda)
+(evil-leader/set-key "oa" 'org-agenda-list)
 
 ;;Org capture
 (evil-leader/set-key "oc" 'org-capture)
 
-;;Org mode todo states
-(setq org-todo-keywords '((sequence "TODO(t)" "DOING(d)" "MAYBE(m)" "HACK(h)"
-                                    "WAITING(w)" "HABIT(H)" "NEXT(n)"
-                                    "TEST(T)" "ADMIN(A)" "ASSIGNMENT(a)" "SCHOOL(s)"
-                                    "|" "DONE(D)" "CANCELLED(c)")))
+(setq org-todo-keywords'((sequence "TODO(t)" "NEXT(n)" "DOING(d)" "MAYBE(m)" "WAITING(w@)"
+                                   "|" "DONE(D)" "CANCELED(C)")
+                         (sequence "HABIT(h)" "DOING(d)" "|" "DONE(D)"
+                                   "CANCELED(C)")
+                         (sequence "ASSIGNMENT(a)" "DOING(d)" "|" "DONE(D)"
+                                   "CANCELED(C)")
+                         (sequence "TEST(t)" "|" "DONE(D)")
+                         (sequence "HACK(H)" "|" "Done(D)")))
+
+(setq org-agenda-files (list
+                        "~/Org/Agenda.org"
+                        "~/Org/Habits.org"
+                        "~/Org/School.org"))
 
 ;;Org capture file
 (setq org-default-notes-file "~/Org/OrgCaptures.org")
@@ -945,6 +972,14 @@
   :config
   (add-hook 'dired-mode-hook 'org-download-enable))
 
+
+(defun my-agenda-view ()
+  "Open agenda and go to daily view without any interaction with the menus."
+  (interactive)
+  (org-agenda-list)
+  (org-agenda-day-view)
+  )
+
 (use-package aggressive-indent
   :ensure t
   :config
@@ -959,13 +994,13 @@
   (setq lsp-enable-snippet t)
   (setq lsp-enable-xref t)
   (setq lsp-enable-folding t)
-  (setq lsp-enable-indentation t)
+  (setq lsp-enable-indentation nil)
   (setq lsp-auto-guess-root t)
-  (setq lsp-enable-on-type-formatting t)
+  (setq lsp-enable-on-type-formatting nil)
   (setq lsp-enable-file-watchers t)
   )
 
-;; ;;frontend for completions
+;;frontend for completions
 (use-package company
   :ensure t
   :config
@@ -998,7 +1033,7 @@
 ;; Keeps a file containing the most used completions
 (use-package company-statistics
   :ensure t
-  :after company-lsp)
+  :after company)
 
 
 (use-package company-c-headers
@@ -1007,13 +1042,17 @@
   :config
   (add-to-list 'company-backends 'company-c-headers))
 
-  (use-package lsp-ui
-    :ensure t
-    :commands lsp-ui-mode
-    :config
-    (setq lsp-ui-sideline-ignore-duplicate t
-          lsp-ui-sideline-enable nil
-          lsp-ui-doc-mode t))
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-sideline-ignore-duplicate t
+        lsp-ui-sideline-enable nil
+        lsp-ui-doc-mode t))
+
+(use-package company-box
+  :ensure t
+  :hook (company-mode . company-box-mode))
 
 (use-package origami
   :ensure t
@@ -1027,27 +1066,23 @@
    ask if it should be used."
   (interactive)
   (if (not (lsp-workspace-root (buffer-file-name)))
-      (if (y-or-n-p "No workspace found! Add to workspaces and run lsp or skip lsp?")
+      (if (y-or-n-p "No workspace found! Add to workspaces and run LSP or skip LSP entirely?")
           (progn
             (lsp-workspace-folders-add (read-string "Add the path:"))
             (lsp)
             )
+        (message "LSP not setup!")
         )
-    (progn
-    (if (y-or-n-p "Start lsp?")
-        (lsp)
-      (message "lsp not started"))
-    )
+    (progn 
+      (message "Root found! Start LSP!."))
     )
   )
 
 (use-package geiser
   :ensure t
-  :after (scheme-mode)
+  :after scheme-mode
   :hook
   (add-hook 'geiser-mode-hook 'rainbow-delimiters-mode))
-
-(add-hook 'scheme-mode-hook 'run-geiser)
 
 ;;Activate company mode in lisp mode
 (use-package slime-company
@@ -1057,14 +1092,14 @@
 ;;Set up slime
 (use-package slime
 :ensure t
-:mode ("\\.cl\\'" . lisp-mode) 
+:mode ("\\.cl$" . lisp-mode) 
 :config
 (setq inferior-lisp-program "/usr/bin/sbcl")
 (setq slime-contribs '(slime-fancy slime-company)))
 
 (use-package common-lisp-snippets
-:ensure t
-:defer t)
+  :ensure t
+  :after slime)
 
 ;;Elisp hook for auto complete
 (add-hook 'emacs-lisp-mode-hook (lambda ()
@@ -1074,17 +1109,16 @@
 
 ;;Hook for common lisp. Starts up the REPL
 (add-hook 'lisp-mode-hook #'(lambda ()
-                (company-mode)
-                (slime)
-                (require 'common-lisp-snippets)
-                (company-statistics-mode)
-                (yas-minor-mode)))
+                              (company-mode)
+                              (slime)
+                              (require 'common-lisp-snippets)
+                              (company-statistics-mode)
+                              (yas-minor-mode)))
 
 (use-package rustic
   :ensure t
-  :mode "\\.rs$"
   :config
-  (setq rustic-rls-pkg 'lsp-mode)
+  (setq rustic-rls-pkg nil)
   (setq rustic-lsp-server 'rust-analyzer)
   )
 
@@ -1096,7 +1130,7 @@
 ;;Default emacs python mode, set up a hook for it to enable elpy
 (use-package python
   :ensure t
-  :mode ("\\.py" . python-mode))
+  :mode ("\\.py$" . python-mode))
 
 (use-package lsp-python-ms
   :ensure t
@@ -1219,7 +1253,7 @@
 
 ;; Set up latex
 (use-package tex
-  :defer t
+  :mode "\\.tex$"
   :ensure auctex)
 
 (use-package go-mode
@@ -1252,11 +1286,12 @@
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-molokai)
   (doom-themes-org-config)
   (setq doom-themes-enable-bold t
         doom-themes-enable-italic t
-        doom-molokai-brighter-comments t))
+        doom-molokai-brighter-comments t
+        doom-dracula-brighter-comments t
+        doom-dracula-colorful-headers t))
 
 (use-package all-the-icons
   :ensure t)
@@ -1272,3 +1307,18 @@
    doom-modeline-buffer-modification-icon t
    doom-modeline-major-mode-icon t
    doom-modeline-buffer-file-name-style 'file-name))
+
+
+
+(use-package kaolin-themes
+  :ensure t
+  :config
+  (setq kaolin-bold t
+        kaolin-hl-line-colored t
+        kaolin-themes-comments-style 'normal)
+  (load-theme 'kaolin-galaxy t)
+  )
+
+
+(set-face-attribute 'org-block-begin-line nil :foreground "#e6e6e8" :background "#2a2931")
+(set-face-attribute 'org-block-end-line nil :foreground "#e6e6e8" :background "#2a2931")
