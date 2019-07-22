@@ -22,9 +22,9 @@
   (setq gc-cons-threshold 1000000))
 
 ;;Increases threshold to the maximum, helps not slow down fuzzy searches
-;(add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
+(add-hook 'minibuffer-setup-hook #'minibuffer-increase-threshold)
 ;;Returns it to normal afterwards
-;(add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
+(add-hook 'minibuffer-exit-hook #'minibuffer-normal-threshold)
 
 ;;Disable backup files
 (setq make-backup-files nil)
@@ -87,9 +87,6 @@
 ;; Visual indicators for wrap lines
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
-;;Wrap lines so they do not go past screen edge
-(global-visual-line-mode 1)
-
 ;;Stop keys being echoed in minibuffer. Messes up which-key
 (setq echo-keystrokes 0)
 
@@ -102,8 +99,14 @@
 ;;Set initial buffer mode to text mode.
 (setq initial-major-mode 'emacs-lisp-mode)
 
-;; Highlight current line
-(global-hl-line-mode)
+(add-hook 'prog-mode-hook (lambda ()
+                            (hl-line-mode)
+                            (visual-line-mode)
+                            ))
+
+(add-hook 'text-mode-hook (lambda ()
+                            (hl-line-mode)
+                            (visual-line-mode)))
 
 ;; Set hack as default font
 (set-frame-font "Hack 11" nil t)
@@ -375,8 +378,53 @@
   (evil-leader/set-key "al" 'avy-goto-char-in-line))
 
 ;; New terminal emulator
-;(add-to-list 'load-path "~/.emacs.d/emacs-libvterm/")
-;(require 'vterm)
+(use-package vterm
+  :ensure t
+  :config
+(add-hook 'vterm-mode-hook
+          (lambda ()
+            (setq-local evil-insert-state-cursor 'box)
+            (evil-insert-state)))
+(define-key vterm-mode-map [return]                      #'vterm-send-return)
+
+(setq vterm-keymap-exceptions nil)
+(evil-define-key 'insert vterm-mode-map (kbd "C-e")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-f")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-a")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-v")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-b")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-w")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-u")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-n")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-m")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-p")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-j")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-k")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-r")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-t")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-g")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-c")      #'vterm--self-insert)
+(evil-define-key 'insert vterm-mode-map (kbd "C-SPC")    #'vterm--self-insert)
+(evil-define-key 'normal vterm-mode-map (kbd "C-d")      #'vterm--self-insert)
+;; (evil-define-key 'normal vterm-mode-map (kbd ",c")       #'multi-libvterm)
+;; (evil-define-key 'normal vterm-mode-map (kbd ",n")       #'multi-libvterm-next)
+;; (evil-define-key 'normal vterm-mode-map (kbd ",p")       #'multi-libvterm-prev)
+(evil-define-key 'normal vterm-mode-map (kbd "i")        #'evil-insert-resume)
+(evil-define-key 'normal vterm-mode-map (kbd "o")        #'evil-insert-resume)
+(evil-define-key 'normal vterm-mode-map (kbd "<return>") #'evil-insert-resume))
+
+
+(use-package multi-libvterm
+  :load-path "~/.emacs.d/multi-libvterm"
+  :config
+  (setq multi-libvterm-dedicated-window-height 100)
+  (evil-global-set-key 'normal (kbd "C-,") 'multi-libvterm-projectile)
+  (evil-global-set-key 'insert (kbd "C-,") 'multi-libvterm-projectile)
+  (evil-leader/set-key "sp" 'multi-libvterm-projectile)
+  (evil-leader/set-key "so" 'multi-libvterm)
+  (evil-leader/set-key "sl" 'multi-libvterm-next)
+  (evil-leader/set-key "sh" 'multi-libvterm-prev))
 
 (use-package rainbow-delimiters
   :ensure t)
@@ -983,8 +1031,9 @@
 (use-package aggressive-indent
   :ensure t
   :config
-  (global-aggressive-indent-mode 1)
-  (add-to-list 'aggressive-indent-excluded-modes 'html-mode))
+  (add-to-list 'aggressive-indent-excluded-modes 'html-mode)
+  (add-hook 'emacs-lisp-mode-hook 'aggressive-indent-mode)
+  (add-hook 'lisp-mode-hook 'aggressive-indent-mode))
 
 (use-package lsp-mode
   :ensure t
@@ -1051,8 +1100,8 @@
         lsp-ui-doc-mode t))
 
 (use-package company-box
-  :ensure t
-  :hook (company-mode . company-box-mode))
+  :ensure t)
+  ;; :hook (company-mode . company-box-mode))
 
 (use-package origami
   :ensure t
